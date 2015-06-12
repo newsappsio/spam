@@ -2,9 +2,8 @@ var StaticMap;
 var ZoomableMap;
 
 !function() {
+    "use strict";
     StaticMap = function(parameters) {
-        "use strict";
-
         var settings = jQuery.extend({
                 strokeWidth: 1.5,
                 height: 200,
@@ -85,11 +84,10 @@ var ZoomableMap;
             svg.selectAll(".map-polygon")
                .on("click", zoomIn)
                .on("mouseover", function(d, i) {
-                   //TODO: Set stroke color dynamically here, not in css
-                   d3.select(this).classed("map-polygon--active", true);
+                   d3.select(this).style("stroke", "black")
                 })
                .on("mouseout", function(d, i) {
-                    d3.select(this).classed("map-polygon--active", false);
+                    d3.select(this).style("stroke", "unset")
                });
 
             group = svg.select(".map-polygonGroup");
