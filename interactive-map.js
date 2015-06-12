@@ -77,9 +77,10 @@ var ZoomableMap;
             staticMap.init()
 
             var svg = d3.select(parameters.element + " svg")
+            group = svg.select(".map-polygonGroup")
 
             svg.select(".map-background")
-               .on("click", zoomOut);
+               .on("click", zoomOut)
 
             svg.selectAll(".map-polygon")
                .on("click", zoomIn)
@@ -88,20 +89,16 @@ var ZoomableMap;
                 })
                .on("mouseout", function(d, i) {
                     d3.select(this).style("stroke", "unset")
-               });
-
-            group = svg.select(".map-polygonGroup");
-
-            //$(parentSelector + ".map-clearButton").on("click", zoomHome);
+               })
         }
 
         function zoomOut() {
             selected = undefined
 
             group.transition()
-                .duration(500)
-                .style("stroke-width", settings.strokeWidth + "px")
-                .attr("transform", "")
+                 .duration(500)
+                 .style("stroke-width", settings.strokeWidth + "px")
+                 .attr("transform", "")
 
             settings.selectCallback(undefined)
         }
@@ -133,6 +130,7 @@ var ZoomableMap;
         }
 
         this.init = init
+        this.zoomOut = zoomOut
         this.settings = function() { return settings }
     }
 }()
