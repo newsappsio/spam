@@ -1,6 +1,7 @@
 var StaticMap;
 var ZoomableMap;
 var StaticCanvasMap;
+var ZoomableCanvasMap;
 
 !function() {
     "use strict";
@@ -63,7 +64,7 @@ var StaticCanvasMap;
         this.init = init
         this.features = function() { return features }
         this.path = function()  { return dataPath }
-        this.parameters = function() { return settings }
+        this.settings = function() { return settings }
     }
 
     StaticCanvasMap = function(parameters) {
@@ -96,11 +97,13 @@ var StaticCanvasMap;
             projection.scale(scale)
                       .translate([settings.width / 2, settings.height / 2/* + topMargin*/])
         }
+        settings.projection = projection
 
         $(this).height(settings.height) //FIXME: Introduce topMargin again
 
         function init() {
-            var canvas = d3.select(settings.element).append("canvas")
+            var canvas = d3.select(settings.element)
+                           .append("canvas")
               , context = canvas.node().getContext("2d")
               , devicePixelRatio = window.devicePixelRatio || 1
               , backingStoreRatio = context.webkitBackingStorePixelRatio ||
@@ -108,7 +111,7 @@ var StaticCanvasMap;
                                     context.msBackingStorePixelRatio ||
                                     context.oBackingStorePixelRatio ||
                                     context.backingStorePixelRatio || 1
-              , ratio = devicePixelRatio / backingStoreRatio
+            ratio = devicePixelRatio / backingStoreRatio
 
             canvas.attr("width", settings.width * ratio)
             canvas.attr("height", settings.height * ratio)
@@ -128,7 +131,7 @@ var StaticCanvasMap;
             for (var i in features.features) {
                 var color = settings.fillCallback(features.features[i], i)
                 context.beginPath()
-                dataPath(features.features[i])
+                console.log(dataPath(features.features[i]))
                 context.fillStyle = color
                 context.fill()
             }
@@ -142,7 +145,9 @@ var StaticCanvasMap;
         this.init = init
         this.features = function() { return features }
         this.path = function()  { return dataPath }
-        this.parameters = function() { return settings }
+        this.settings = function() { return settings }
+        this.context = function() { return context }
+        this.ratio = function() { return ratio }
     }
 
     ZoomableMap = function(parameters) {
@@ -190,16 +195,16 @@ var StaticCanvasMap;
             }
             selected = d
 
-            var bounds = staticMap.path().bounds(d),
-                dx = bounds[1][0] - bounds[0][0],
-                dy = bounds[1][1] - bounds[0][1],
-                x = (bounds[0][0] + bounds[1][0]) / 2,
-                y = (bounds[0][1] + bounds[1][1]) / 2,
-                scale = settings.zoomScaleFactor /
-                        Math.max(dx / settings.width, dy / settings.height),
-                translate = [settings.width / 2 - scale * x,
-                             settings.height / 2 - scale * y/* + topMargin*/],
-                strokeWidthScaled = Math.max(0.01, settings.strokeWidth / scale)
+            var bounds = staticMap.path().bounds(d)
+              , dx = bounds[1][0] - bounds[0][0]
+              , dy = bounds[1][1] - bounds[0][1]
+              , x = (bounds[0][0] + bounds[1][0]) / 2
+              , y = (bounds[0][1] + bounds[1][1]) / 2
+              , scale = settings.zoomScaleFactor /
+                        Math.max(dx / settings.width, dy / settings.height)
+              , translate = [settings.width / 2 - scale * x,
+                             settings.height / 2 - scale * y/* + topMargin*/]
+              , strokeWidthScaled = Math.max(0.01, settings.strokeWidth / scale)
 
             group.transition()
                  .duration(500)
@@ -207,6 +212,93 @@ var StaticCanvasMap;
                  .style("stroke-width", strokeWidthScaled + "px")
 
             settings.selectCallback(selected)
+        }
+
+        this.init = init
+        this.zoomOut = zoomOut
+        this.settings = function() { return settings }
+    }
+
+    ZoomableCanvasMap = function(parameters) {
+        var staticMap = new StaticCanvasMap(parameters)
+          , settings = $.extend({
+                selectCallback: function(d) {}
+            }, staticMap.settings())
+          , selected
+
+        function init() {
+            staticMap.init()
+
+            var canvas = d3.select(parameters.element + " canvas")
+                           .on("click", click)
+        }
+
+        function click() {
+            var x = d3.event.clientX,
+                y = d3.event.clientY
+
+            var point = {
+                "type": "Feature",
+                "geometry": {
+                    "type": "Point",
+                    "coordinates": staticMap.settings().projection.invert([x, y])
+                }
+            }
+
+            var features = staticMap.features().features
+            var dataPath = staticMap.path()
+            var context = d3.select(settings.element + " canvas")
+                            .node().getContext("2d")
+            var ratio = staticMap.ratio()
+            for (var i in features) {
+                if (turf.inside(point, features[i])) {
+                    console.log("Inside: " + features[i].properties.name)
+
+                    var bounds = staticMap.path().bounds(features[i])
+                      , dx = bounds[1][0] - bounds[0][0]
+                      , dy = bounds[1][1] - bounds[0][1]
+                      , bx = (bounds[0][0] + bounds[1][0]) / 2
+                      , by = (bounds[0][1] + bounds[1][1]) / 2
+                      , scale = settings.zoomScaleFactor /
+                                Math.max(dx / settings.width, dy / settings.height)
+                      , translate = [settings.width / 2 - scale * bx,
+                                     settings.height / 2 - scale * by/* + topMargin*/]
+                      , strokeWidthScaled = Math.max(0.01, settings.strokeWidth / scale)
+
+                    console.log("Scale: " + scale)
+                    console.log(translate)
+                    console.log(bx)
+                    console.log(by)
+
+                    console.log(ratio)
+
+                    context.clearRect(0, 0, settings.width * ratio, settings.height * ratio)
+
+                    context.save()
+
+                    //context.scale(scale * ratio, scale * ratio)
+                    context.translate((- bx / 2) * scale * ratio,
+                                      (- by / 2) * scale * ratio)
+                    context.scale(scale * ratio, scale * ratio)
+                    //TODO: Use projection?
+
+                    for (var i in features) {
+                        var color = settings.fillCallback(features[i], i)
+                        context.beginPath()
+                        dataPath(features[i])
+                        context.fillStyle = color
+                        context.fill()
+                    }
+
+                    context.restore()
+                }
+            }
+        }
+
+        function zoomOut() {
+        }
+
+        function zoomIn(d) {
         }
 
         this.init = init
