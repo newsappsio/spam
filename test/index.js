@@ -25,7 +25,7 @@ $(document).ready(function() {
             projection: projection,
             height: mapHeight
         }
-        var map = new ZoomableMap(parameters)
+        var map = new StaticCanvasMap(parameters)
         console.log(map)
         map.init()
         console.log(map)
