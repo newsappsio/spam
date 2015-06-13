@@ -75,6 +75,7 @@ var StaticCanvasMap;
             }, parameters)
           , features = topojson.feature(settings.topojson,
                                         settings.topojson.objects[parameters.name])
+          , ratio = 1
 
         if (parameters.projection) {
             var dataPath = d3.geo.path().projection(projection = parameters.projection)
@@ -100,32 +101,31 @@ var StaticCanvasMap;
 
         function init() {
             var canvas = d3.select(settings.element).append("canvas")
-                .attr("width", settings.width)
-                .attr("height", settings.height)
+              , context = canvas.node().getContext("2d")
+              , devicePixelRatio = window.devicePixelRatio || 1
+              , backingStoreRatio = context.webkitBackingStorePixelRatio ||
+                                    context.mozBackingStorePixelRatio ||
+                                    context.msBackingStorePixelRatio ||
+                                    context.oBackingStorePixelRatio ||
+                                    context.backingStorePixelRatio || 1
+              , ratio = devicePixelRatio / backingStoreRatio
 
-            var context = canvas.node().getContext("2d")
-
+            canvas.attr("width", settings.width * ratio)
+            canvas.attr("height", settings.height * ratio)
+            canvas.style("width", settings.width + "px")
+            canvas.style("height", settings.height + "px")
             context.lineJoin = "round"
             context.lineCap = "round"
-            context.strokeStyle = "#fff"
 
             dataPath.context(context)
 
             context.clearRect(0, 0, settings.width, settings.height)
 
             context.save()
-            //context.translate(t[0], t[1]);
-            //context.scale(s, s);
-            //context.lineWidth = 1 / s;
 
-            /*context.beginPath()
-            dataPath(features)
-            context.fillStyle = "#000"
-            context.fill()*/
+            context.scale(ratio, ratio)
 
             for (var i in features.features) {
-                console.log("Render " + i)
-                console.log(features.features[i])
                 var color = settings.fillCallback(features.features[i], i)
                 context.beginPath()
                 dataPath(features.features[i])
@@ -133,20 +133,7 @@ var StaticCanvasMap;
                 context.fill()
             }
 
-            /*context.beginPath();
-            path(land);
-            context.fillStyle = "#000";
-            context.fill();
-
-            context.beginPath();
-            path(boundary);
-            context.stroke();*/
-
             context.restore()
-
-            console.log(self.frameElement)
-
-            d3.select(self.frameElement).style("height", settings.height + "px")
 
             //Prevent another call to the init method
             this.init = function() {}
