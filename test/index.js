@@ -10,7 +10,7 @@ $(document).ready(function() {
             element: ".js-test",
             topojson: d,
             name: "provincias",
-            zoomScaleFactor: 0.5,
+            zoomScaleFactor: 0.6,
             fillCallback: function(d, i) {
                 var c = i % 4;
                 if (c == 0)
@@ -25,7 +25,7 @@ $(document).ready(function() {
             projection: projection,
             height: mapHeight
         }
-        var map = new StaticCanvasMap(parameters)
+        var map = new ZoomableCanvasMap(parameters)
         console.log(map)
         map.init()
         console.log(map)

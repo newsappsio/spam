@@ -236,72 +236,65 @@ var ZoomableCanvasMap;
     }
 
     ZoomableCanvasMap = function(parameters) {
-         var settings = jQuery.extend({
-                 strokeWidth: 1.5,
-                 height: 800,
-                 width: $(parameters.element).innerWidth(),
-                 zoomScaleFactor: 0.9,
-                 selectCallback: function(d) {}
-             }, parameters)
-           , features = topojson.feature(settings.topojson,
-                                         settings.topojson.objects[settings.name])
-           , ratio = 1
+        topojson.presimplify(parameters.topojson)
+        var settings = jQuery.extend({
+                strokeWidth: 1.5,
+                height: 200,
+                width: $(parameters.element).innerWidth(),
+                zoomScaleFactor: 0.9,
+                selectCallback: function(d) {}
+            }, parameters)
+          , features = topojson.feature(settings.topojson,
+                                        settings.topojson.objects[parameters.name])
+          , selected = undefined
+          , zoom = d3.behavior.zoom()
+                              .translate([0, 0])
+                              .scale(1)
+                              .size([settings.height, settings.width])
+                              .on("zoom", paint)
+          , ratio = 1
+          , area = 0
+          , clip = d3.geo.clipExtent()
+                         .extent([[-settings.width, -settings.height], [settings.width, settings.height]])
+          , simplify = d3.geo.transform({
+                point: function(x, y, z) {
+                    if (z >= area/* && x >= 0 && y >= 0*/) {
+                        //console.log("X: " + x + "Y: " + y)
+                        this.stream.point(x, y)
+                    }
+                }
+            })
+         , zoomScale = 1
+         , zoomTranslate = [0, 0]
 
+        if (parameters.projection) {
+            var projection = parameters.projection
+              , dataPath = d3.geo.path().projection({
+                    stream: function(s) {
+                        return simplify.stream(projection.stream(s))
+                    }
+                })
+        } else {
+            var b = d3.geo.bounds(features)
+              , projection = d3.geo.mercator()
+                                   .scale(1)
+                                   .center([(b[1][0] + b[0][0]) / 2,
+                                            (b[1][1] + b[0][1]) / 2])
+              , dataPath = d3.geo.path().projection({
+                  stream: function(s) { return simplify.stream(clip.stream(projection.stream(s))) }
+              })
+              , bounds = dataPath.bounds(features)
+              , dx = bounds[1][0] - bounds[0][0]
+              , dy = bounds[1][1] - bounds[0][1]
+              , scale = 0.9 * (settings.width / dx)
 
+            settings.height = dy * settings.width / dx
+            projection.scale(scale)
+                      .translate([settings.width / 2, settings.height / 2/* + topMargin*/])
+        }
+        settings.projection = projection
 
-                 var s = 1,
-                     t = [0, 0],
-                     a = 0.5; // minimum area threshold for simplification
-
-
-         var clip = d3.geo.clipExtent()
-             .extent([[- settings.width * ratio, - settings.height * ratio], [settings.width * ratio, settings.height * ratio]]);
-
-
-             var simplify = d3.geo.transform({
-               point: function(x, y, z) {
-                 /*if (z >= a)*/ this.stream.point(x * s + t[0], y * s + t[1]);
-               }
-           })
-
-         if (parameters.projection) {
-             console.log("PARAMETERS PROJECTION")
-             var dataPath = d3.geo.path()
-                                .projection({stream: function(s) {
-                                    return simplify.stream(proj.stream(s));
-                                 }})
-         } else {
-             console.log("HERE")
-             var b = d3.geo.bounds(features)
-               , proj = d3.geo.mercator()
-                                    .scale(1)
-                                    .center([(b[1][0] + b[0][0]) / 2,
-                                             (b[1][1] + b[0][1]) / 2])
-               , dataPath = d3.geo.path()
-                                  .projection({stream: function(s) {
-                                      return simplify.stream(clip.stream(proj.stream(s)));
-                                   }})
-               , bounds = dataPath.bounds(features)
-               , dx = bounds[1][0] - bounds[0][0]
-               , dy = bounds[1][1] - bounds[0][1]
-               , scale = 0.9 * (settings.width / dx)
-
-             settings.height = dy * settings.width / dx
-             settings.projection = proj
-
-             proj.scale(scale)
-                       .translate([settings.width / 2, settings.height / 2/* + topMargin*/])
-         }
-         //settings.projection = projection
-
-         $(this).height(settings.height) //FIXME: Introduce topMargin again
-
-         var selected
-           , zoom = d3.behavior.zoom()
-                      .translate([0, 0])
-                      .scale(1)
-                      .size([settings.height, settings.width])
-                      .on("zoom", paint)
+        $(this).height(settings.height) //FIXME: Introduce topMargin again
 
 
         function init() {
@@ -326,16 +319,16 @@ var ZoomableCanvasMap;
 
            dataPath.context(context)
 
-           zoom.scale(ratio)
-
            paint()
         }
 
         function click() {
+            console.log("CLICK " + new Date().getMilliseconds())
             var offset = $(settings.element + " canvas").offset()
               , x = d3.event.clientX - offset.left + window.pageXOffset
               , y = d3.event.clientY - offset.top + window.pageYOffset
 
+            console.log("Create point")
             var point = {
                 "type": "Feature",
                 "geometry": {
@@ -347,56 +340,61 @@ var ZoomableCanvasMap;
             var feats = features.features
               , context = d3.select(settings.element + " canvas")
                             .node().getContext("2d")
+            console.log("Start loop " + new Date().getMilliseconds())
             for (var i in feats) {
                 if (turf.inside(point, feats[i])) {
-                    console.log("Inside: " + feats[i].properties.name)
+                    console.log("Inside: " + feats[i].properties.name + " " + new Date().getMilliseconds())
 
                     var bounds = dataPath.bounds(feats[i])
                       , dx = bounds[1][0] - bounds[0][0]
                       , dy = bounds[1][1] - bounds[0][1]
                       , bx = (bounds[0][0] + bounds[1][0]) / 2
                       , by = (bounds[0][1] + bounds[1][1]) / 2
-                      , scale = 2//settings.zoomScaleFactor /
-                                //Math.max(dx / settings.width, dy / settings.height)
-                      , translate = [settings.width - bx * scale * ratio,
-                                     settings.height - by * scale * ratio]
+                      , scale = settings.zoomScaleFactor *
+                                Math.min(settings.width / dx, settings.height / dy)
+                      , translate = [-bx + settings.width / scale / 2,
+                                     -by + settings.height / scale / 2]
                       , strokeWidthScaled = Math.max(0.01, settings.strokeWidth / scale)
+                    console.log("Zoom thang: " + Math.min(dx / settings.width, dy / settings.height))
+                    console.log("Zoom: " + scale)
+                    console.log("CALCULATED TRANSLATE: " + translate)
 
-                    zoom.translate(translate)
-                    paint()
-
-                    d3.transition().duration(750).tween("zoom", function() {
+                    d3.transition().duration(500).tween("zoom", function() {
                         //console.log(scale * ratio)
-                        var i = d3.interpolateNumber(0, scale * ratio)
+                        var i = d3.interpolateNumber(1, scale)
                         var tr = d3.interpolateArray([0, 0], translate)
                         return function(t) {
-                            //console.log(i(t))
-                            zoom.scale(i(t))
+                            console.log(i(t))
+                            zoomScale = i(t)
                             //console.log([tr(t)[0], tr(t)[1]])
-                            zoom.translate([t * t * tr(t)[0], t * t * tr(t)[1]])
+                            zoomTranslate = tr(t)
+                            console.log
+                            //zoom.translate([t * t * tr(t)[0], t * t * tr(t)[1]])
                             paint()
                         }
                     })
+                    break
                 }
             }
         }
 
         function paint() {
-            t = zoom.translate()
-            s = zoom.scale()
-            a = 1 / scale / scale;
+            console.log("Paint start: " + new Date().getMilliseconds())
             var feats = features.features
               , context = d3.select(settings.element + " canvas")
                             .node()
                             .getContext("2d")
+            area = 1 / settings.projection.scale() / zoomScale
 
             context.clearRect(0, 0, settings.width * ratio, settings.height * ratio)
 
             context.save()
+            context.scale(ratio * zoomScale, ratio * zoomScale)
+            context.translate(zoomTranslate[0], zoomTranslate[1])
 
-            //context.translate(t[0], t[1])
-            //context.scale(s, s)
-
+            console.log("translated to: " + zoomTranslate[0] + "," + zoomTranslate[1])
+            console.log("Zoomed to: " + zoomScale)
+            console.log("Paint start feats: " + new Date().getMilliseconds())
             for (var i in feats) {
                 var color = settings.fillCallback(feats[i], i)
                 context.beginPath()
@@ -406,6 +404,7 @@ var ZoomableCanvasMap;
             }
 
             context.restore()
+            console.log("Paint end: " + new Date().getMilliseconds())
         }
 
         function zoomOut() {
