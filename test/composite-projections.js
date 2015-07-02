@@ -130,7 +130,7 @@ d3.geo.albersUsa = function() {
     var hawaii2 = lower48([-104.0, 27.5]);
     var hawaii3 = lower48([-108.0, 29.1]);
     var hawaii4 = lower48([-110.0, 29.1]);
-    
+
     var alaska1 = lower48([-110.0, 26.7]);
     var alaska2 = lower48([-112.8, 27.6]);
     var alaska3 = lower48([-114.3, 30.6]);
@@ -209,7 +209,7 @@ conicConformalPortugal.invert = function(coordinates) {
       y1 = (c1[1] - t[1]) / k;
 
       console.info(x1 + ' - ' + y1);
-      
+
 
       var c0 = azores(azoresBbox[0]);
       x0 = (c0[0] - t[0]) / k;
@@ -521,7 +521,7 @@ conicConformalSpain.stream = function(stream) {
 
     var ulCanaryIslands = iberianPeninsule([-13.0, 35.3]);
     var ldCanaryIslands = iberianPeninsule([-6.4, 34.0]);
-    
+
     return "M"+ulCanaryIslands[0]+" "+ulCanaryIslands[1]+"L"+ldCanaryIslands[0]+" "+ulCanaryIslands[1]+
       "L"+ldCanaryIslands[0]+" "+ldCanaryIslands[1];
 

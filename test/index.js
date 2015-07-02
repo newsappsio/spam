@@ -1,16 +1,16 @@
 $(document).ready(function() {
-    d3.json("provincias.json", function(d) {
+    d3.json("provincias-orig.json", function(d) {
         var mapWidth = $(".js-test").innerWidth(),
             mapHeight = 600,
             scale = 2700;
         var projection = d3.geo.conicConformalSpain()
                                .translate([mapWidth / 2 + 40, mapHeight / 2 - 40])
-                               .scale(scale);
+                               .scale(scale)
         var parameters = {
             element: ".js-test",
             topojson: d,
             name: "provincias",
-            zoomScaleFactor: 0.2,
+            zoomScaleFactor: 0.5,
             fillCallback: function(d, i) {
                 var c = i % 4;
                 if (c == 0)
@@ -25,7 +25,7 @@ $(document).ready(function() {
             projection: projection,
             height: mapHeight
         }
-        var map = new ZoomableCanvasMap(parameters)
+        var map = new StaticCanvasMap(parameters)
         console.log(map)
         map.init()
         console.log(map)
