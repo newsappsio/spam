@@ -359,16 +359,38 @@ var ZoomableCanvasMap;
                     console.log("Zoom: " + scale)
                     console.log("CALCULATED TRANSLATE: " + translate)
 
-                    d3.transition().duration(500).tween("zoom", function() {
+                    var origin = [0, 0]
+
+                    /*d3.transition()
+                      .duration(300)
+                      .ease("exp")
+                      .tween("zoom", function() {
+                        var i = d3.interpolateArray([0, 0], firstTranslate)
+                        return function(t) {
+                            console.log(i(t))
+                            zoomScale = 1
+                            //console.log([tr(t)[0], tr(t)[1]])
+                            zoomTranslate = i(t)
+                            //zoom.translate([t * t * tr(t)[0], t * t * tr(t)[1]])
+                            paint()
+                        }
+                    })*/
+
+                    d3.transition()
+                      .duration(2000)
+                      .ease("exp")
+                      .tween("zoom", function() {
                         //console.log(scale * ratio)
                         var i = d3.interpolateNumber(1, scale)
-                        var tr = d3.interpolateArray([0, 0], translate)
+                        var tr = d3.interpolateNumber(0, 1)
                         return function(t) {
                             console.log(i(t))
                             zoomScale = i(t)
                             //console.log([tr(t)[0], tr(t)[1]])
-                            zoomTranslate = tr(t)
-                            console.log
+                            zoomTranslate = [(i(t) / scale) * (-bx + settings.width / i(t) / 2) - (1 - i(t) / scale) * origin[0],
+                                             (i(t) / scale) * (-by + settings.height / i(t) / 2) - (1 - i(t) / scale) * origin[1]]
+                                            //[-bx + settings.width / i(t) / 2,
+                                            // -by + settings.height / i(t) / 2]
                             //zoom.translate([t * t * tr(t)[0], t * t * tr(t)[1]])
                             paint()
                         }
@@ -379,7 +401,7 @@ var ZoomableCanvasMap;
         }
 
         function paint() {
-            console.log("Paint start: " + new Date().getMilliseconds())
+            //console.log("Paint start: " + new Date().getMilliseconds())
             var feats = features.features
               , context = d3.select(settings.element + " canvas")
                             .node()
@@ -392,19 +414,18 @@ var ZoomableCanvasMap;
             context.scale(ratio * zoomScale, ratio * zoomScale)
             context.translate(zoomTranslate[0], zoomTranslate[1])
 
-            console.log("translated to: " + zoomTranslate[0] + "," + zoomTranslate[1])
-            console.log("Zoomed to: " + zoomScale)
-            console.log("Paint start feats: " + new Date().getMilliseconds())
+            //console.log("translated to: " + zoomTranslate[0] + "," + zoomTranslate[1])
+            //console.log("Zoomed to: " + zoomScale)
+            //console.log("Paint start feats: " + new Date().getMilliseconds())
             for (var i in feats) {
-                var color = settings.fillCallback(feats[i], i)
                 context.beginPath()
                 dataPath(feats[i])
-                context.fillStyle = color
+                context.fillStyle = settings.fillCallback(feats[i], i)
                 context.fill()
             }
 
             context.restore()
-            console.log("Paint end: " + new Date().getMilliseconds())
+            //console.log("Paint end: " + new Date().getMilliseconds())
         }
 
         function zoomOut() {
