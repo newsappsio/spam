@@ -377,18 +377,21 @@ var ZoomableCanvasMap;
                     })*/
 
                     d3.transition()
-                      .duration(2000)
-                      .ease("exp")
+                      .duration(400)
+                      .ease("circle")
                       .tween("zoom", function() {
                         //console.log(scale * ratio)
                         var i = d3.interpolateNumber(1, scale)
-                        var tr = d3.interpolateNumber(0, 1)
+                        var tx = d3.interpolateNumber(0, -bx + settings.width / scale / 2)
+                        var ty = d3.interpolateNumber(0, -by + settings.height / scale / 2)
                         return function(t) {
                             console.log(i(t))
                             zoomScale = i(t)
+                            zoomTranslate = [tx(t) * scale / i(t),
+                                             ty(t) * scale / i(t)]
                             //console.log([tr(t)[0], tr(t)[1]])
-                            zoomTranslate = [(i(t) / scale) * (-bx + settings.width / i(t) / 2) - (1 - i(t) / scale) * origin[0],
-                                             (i(t) / scale) * (-by + settings.height / i(t) / 2) - (1 - i(t) / scale) * origin[1]]
+                            //zoomTranslate = [(i(t) / scale) * (-bx + settings.width / i(t) / 2) - (1 - i(t) / scale) * origin[0],
+                            //                 (i(t) / scale) * (-by + settings.height / i(t) / 2) - (1 - i(t) / scale) * origin[1]]
                                             //[-bx + settings.width / i(t) / 2,
                                             // -by + settings.height / i(t) / 2]
                             //zoom.translate([t * t * tr(t)[0], t * t * tr(t)[1]])
