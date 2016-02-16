@@ -1,28 +1,121 @@
 <!doctype html>
-<head>
-    <meta charset="UTF-8">
+<html lang="es-ES">
+    <head>
+        <style>
+        </style>
+    </head>
+    <body>
+        <div class="js-map"></div>
 
-    <title>TEST TEST TEST</title>
-    <style>
-        .map-background {
-            fill: white;
-        }
-        .map-polygon {
-            fill: blue;
-        }
-    </style>
-</head>
-<body>
-    <div class="js-test">
-    </div>
+        <script src="jquery.min.js"></script>
+        <script src="d3.min.js"></script>
+        <script src="topojson.js"></script>
+        <script src="rbush.js"></script>
+        <script src="spam.js"></script>
+        <script type='text/javascript'>
+            // Ideas: list of polygons/features, have some prepaintCallback(context)? To set color and all?
+            // hoverCallback, for all?
+            // TODO: Hover mesh? (Mit paint callback? + hover callback?)
+            /*
+            we need some sort of base topojson element with the polygons mmh
+            [{
+                topojson: topojson,
+                prepaint: function(context) {
 
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.4/jquery.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/3.5.5/d3.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/topojson/1.6.19/topojson.js"></script>
-    <script src="https://raw.githubusercontent.com/morganherlocker/turf/master/turf.min.js"></script>
+                },
+                prefeature: function(context, d) {
 
-    <script src="/test/composite-projections.js"></script>
-    <script src="/interactive-map.js"></script>
-    <script src="/test/index.js"></script>
-</body>
+                },
+                hover: function(d) { // TODO: Needs to get reworked, mouseover, mouseout or sth like that?
+
+                },
+                click: function(d) {
+
+                }
+            }
+            ]
+            // TODO: Then already paint in picture, partial paint?
+            // TODO: Different abstraction levels of classes? (=> rather not)
+            // TODO: One base class with just a paint() method? Which generates boilerplate canvas stuffe t
+            // TODO: Zoomable map?
+            // TODO: hoverin, hoverout, paint in base class? Layer definition nur für bg image?
+            */
+
+            // TODO queue.js
+            // TODO lookup mit rtree
+            d3.json("map.json", function(error, d) {
+                d3.json("roads.json", function(error, roads) {
+                    topojson.presimplify(d)
+                    topojson.presimplify(roads)
+
+                    var clicked = []
+                    var map = new StaticCanvasMap({
+                        element: ".js-map",
+                        data: [{
+                            features: topojson.feature(d, d.objects["provincias"]),
+                            prepaint: function(context) {
+
+                            },
+                            paintfeature: function(context, d) {
+                                if (d.properties.name[0] < "H")
+                                    context.fillStyle = "blue"
+                                else
+                                    context.fillStyle = "red"
+                                context.fill()
+                            },
+                            postpaint: function(context) {
+
+                            },
+                            // TODO replace path with map?
+                            dynamicpaint: function(context, path, hover) { // TODO Is this path good?
+                                for (var i in clicked) {
+                                    var element = clicked[i]
+                                    context.beginPath()
+                                    context.fillStyle = "yellow"
+                                    path(element)
+                                    context.fill()
+                                }
+                                if (!hover)
+                                    return
+                                var mesh = topojson.mesh(d,
+                                    d.objects["provincias"],
+                                    function(a, b) {
+                                        return a !== b &&
+                                            (a.properties.name == hover.properties.name ||
+                                                b.properties.name == hover.properties.name)
+                                    })
+                                if (mesh) {
+                                    context.beginPath()
+                                    path(hover)
+                                    context.stroke()
+                                }
+                            },
+                            click: function(map, d) { // TODO
+                                console.log("CLICKED")
+                                console.log(d)
+                                console.log(map)
+                                clicked.push(d)
+                                map.paint()
+                            }
+                        },
+                        {
+                            features: topojson.feature(roads, roads.objects["roads"]),
+                            prepaint: function(context) {
+
+                            },
+                            paintfeature: function(context, d) {
+                                context.lineWidth = 1
+                                context.strokeStyle = "black"
+                                context.stroke()
+                            },
+                            postpaint: function(context) {
+
+                            }
+                        }]
+                    })
+                    map.init()
+                })
+            })
+        </script>
+    </body>
 </html>

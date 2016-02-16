@@ -1,0 +1,18 @@
+Goal:
+- save to pic in multiple steps while zooming in
+- potentially reuse a lot of the code base
+- how to do feature to feature zooms? manually?
+
+Plan:
+- basic CanvasMap class:
+    * setFeatures (takes feature array as usual, for dynamicpaint)
+    * setZoom
+    * setTranslate
+    * setBackground(zoom, translate, image), always uses this background from that point
+    * paint()
+    * hover/click handling?
+    * rtrees should be created before to time it for added/removed elements
+
+- static CanvasMap class, just a wrapper for CanvasMap class
+
+- zoomable classes more complicated
