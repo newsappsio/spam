@@ -213,13 +213,9 @@ var ZoomableCanvasMap;
         }
 
         function paint() {
-            // TODO needs a lot more fixes for scale/translate and stuff
             context.save()
             context.scale(settings.ratio * settings.scale, settings.ratio * settings.scale)
-
             context.clearRect(0, 0, settings.width * settings.ratio, settings.height * settings.ratio)
-            // FIXME get fixed formula from touchdown
-            // Calculate from scale/translate same for bg
 
             var imageTranslate = [(settings.backgroundTranslate[0] - settings.translate[0])
                     * settings.backgroundScale * settings.ratio,
@@ -227,9 +223,7 @@ var ZoomableCanvasMap;
                     * settings.backgroundScale * settings.ratio],
                 translatedZero = translatePoint([0, 0]),
                 translatedMax = translatePoint([settings.width, settings.height])
-            console.log(imageTranslate)
-            console.log(translatedZero)
-            console.log(translatedMax)
+
             context.drawImage(settings.background,
                 imageTranslate[0], imageTranslate[1],
                 (translatedMax[0] - translatedZero[0]) * settings.backgroundScale * settings.ratio,
