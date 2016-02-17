@@ -159,8 +159,8 @@ var ZoomableCanvasMap;
 
             dataPath.context(context)
             context.clearRect(0, 0, settings.width * settings.ratio, settings.height * settings.ratio)
-            context.save()
-            context.scale(settings.ratio, settings.ratio)
+            /*context.save()
+            context.scale(settings.ratio, settings.ratio)*/
 
             // TODO move rtree part out?
             for (var i in settings.data) {
@@ -171,16 +171,18 @@ var ZoomableCanvasMap;
             settings.backgroundScale = settings.scale
             settings.backgroundTranslate = settings.translate
             var callback = function() {
-                for (var i in settings.data) {
+                /*for (var i in settings.data) {
                     var element = settings.data[i]
 
                     if (element.dynamicpaint)
                         element.dynamicpaint(context, dataPath, null)
                 }
 
-                context.restore()
+                context.restore()*/
+                //context.restore()
+                paint()
             }
-            saveBackground(canvas, dataPath, settings.background, callback)
+            //saveBackground(canvas, dataPath, settings.background, callback)
 
             //Prevent another call to the init method
             this.init = function() {}
@@ -203,6 +205,9 @@ var ZoomableCanvasMap;
         }
 
         function saveBackground(saveCanvas, saveDataPath, background, callback) {
+            var context = saveDataPath.context()
+            context.save()
+            context.scale(settings.scale * settings.ratio, settings.scale * settings.ratio)
             for (var i in settings.data) {
                 var element = settings.data[i]
                 paintBackgroundElement(element, saveDataPath)
@@ -210,6 +215,8 @@ var ZoomableCanvasMap;
 
             background.onload = callback
             background.src = saveCanvas.node().toDataURL()
+
+            context.restore()
         }
 
         function paint() {
@@ -294,10 +301,14 @@ var ZoomableCanvasMap;
 
         this.init = init
         this.paint = paint
+        this.settings = function() {
+            return settings
+        }
+        this.saveBackground = saveBackground
     }
 
-    StaticCanvasMap = function(paramaters) {
-        var map = new CanvasMap(paramaters)
+    StaticCanvasMap = function(parameters) {
+        var map = new CanvasMap(parameters)
 
         this.init = function() {
             map.init()
@@ -311,97 +322,32 @@ var ZoomableCanvasMap;
         // TODO define api for zoom polygons?
         // handle clicks, zoom into polygon
         // FIXME how to handle zoom outs?
-        var map = new CanvasMap(parameters)
-
-        this.init = function() {
-            map.init()
-        }
-        this.paint = function() {
-            map.paint()
-        }
-    }
-
-    var StaticTryCanvasMap = function(parameters) {
-        var settings = jQuery.extend({
-                strokeWidth: 1.5,
-                height: 200,
-                width: $(parameters.element).innerWidth(),
-                zoomScaleFactor: 0.9
-            }, parameters),
-            ratio = 1,
-            area = 0,
+        var map = new CanvasMap(parameters),
             simplify = d3.geo.transform({
                 point: function(x, y, z) {
                     if (z >= area) this.stream.point(x, y)
                 }
             }),
+            area = 0,
             canvas = null,
             context = null,
-            staticMap = null
+            settings = map.settings(),
+            dataPath = d3.geo.path().projection({
+                stream: function(s) {
+                    return simplify.stream(settings.projection.stream(s))
+                }
+            })
 
-        if (parameters.projection) {
-            var projection = parameters.projection,
-                dataPath = d3.geo.path().projection({
-                    stream: function(s) {
-                        return simplify.stream(projection.stream(s))
-                    }
-                })
-        } else {
-            var b = [
-                [Number.MAX_VALUE, Number.MAX_VALUE],
-                [Number.MIN_VALUE, Number.MIN_VALUE]
-            ]
-            for (var i in settings.data) {
-                var featureBounds = d3.geo.bounds(settings.data[i].features)
-                b = maxBounds(featureBounds, b)
-            }
-            var projection = d3.geo.mercator()
-                .scale(1)
-                .center([(b[1][0] + b[0][0]) / 2, (b[1][1] + b[0][1]) / 2]),
-                dataPath = d3.geo.path().projection({
-                    stream: function(s) {
-                        return simplify.stream(projection.stream(s))
-                    }
-                }),
-                bounds = [
-                    [Number.MAX_VALUE, Number.MAX_VALUE],
-                    [Number.MIN_VALUE, Number.MIN_VALUE]
-                ]
-            for (var i in settings.data) {
-                featureBounds = dataPath.bounds(settings.data[i].features)
-                bounds = maxBounds(featureBounds, bounds)
-            }
+        this.init = function() {
+            map.init()
 
-            var dx = bounds[1][0] - bounds[0][0],
-                dy = bounds[1][1] - bounds[0][1],
-                scale = 0.9 * (settings.width / dx)
-
-            settings.height = dy * settings.width / dx
-            projection.scale(scale)
-                .translate([settings.width / 2, settings.height / 2])
-        }
-        settings.projection = projection
-
-        $(this).height(settings.height)
-
-        function init() {
             canvas = d3.select(settings.element)
                 .append("canvas")
-                .on("click", click)
-                .on("mousemove", hover)
             context = canvas.node().getContext("2d")
+            area = 1 / settings.projection.scale() / settings.ratio
 
-            var devicePixelRatio = window.devicePixelRatio || 1,
-                backingStoreRatio = context.webkitBackingStorePixelRatio ||
-                context.mozBackingStorePixelRatio ||
-                context.msBackingStorePixelRatio ||
-                context.oBackingStorePixelRatio ||
-                context.backingStorePixelRatio || 1
-            ratio = devicePixelRatio / backingStoreRatio
-            area = 1 / settings.projection.scale() / ratio
-
-            canvas.attr("width", settings.width * ratio)
-            canvas.attr("height", settings.height * ratio)
+            canvas.attr("width", settings.width * settings.ratio)
+            canvas.attr("height", settings.height * settings.ratio)
             canvas.style("width", settings.width + "px")
             canvas.style("height", settings.height + "px")
             context.lineJoin = "round"
@@ -409,133 +355,12 @@ var ZoomableCanvasMap;
 
             dataPath.context(context)
 
-            context.clearRect(0, 0, settings.width * ratio, settings.height * ratio)
-
-            context.save()
-
-            context.scale(ratio, ratio)
-
-            // TODO paint to picture + hover
-            // TODO click
-
-            for (var i in settings.data) {
-                var element = settings.data[i]
-                element.lookupTree = rbush(4)
-                element.prepaint(context)
-                for (var j in element.features.features) {
-                    var bounds = dataPath.bounds(element.features.features[j])
-                    element.lookupTree.insert([
-                        bounds[0][0].toFixed(0),
-                        bounds[0][1].toFixed(0),
-                        bounds[1][0].toFixed(0),
-                        bounds[1][1].toFixed(0),
-                        element.features.features[j]
-                    ])
-                    context.beginPath()
-                    dataPath(element.features.features[j])
-                    element.paintfeature(context, element.features.features[j])
-                }
-                element.postpaint(context)
-            }
-
-            // TODO save picture
-            staticMap = new Image()
-            staticMap.onload = function() {
-                for (var i in settings.data) {
-                    var element = settings.data[i]
-
-                    if (element.dynamicpaint)
-                        element.dynamicpaint(context, dataPath, null)
-                }
-            }
-            staticMap.src = canvas.node().toDataURL()
-
-            context.restore()
-
-            //Prevent another call to the init method
-            this.init = function() {}
+            map.saveBackground(canvas, dataPath, settings.background, function() {
+                map.paint()
+            })
         }
-
-        function paint() {
-            context.save()
-            context.scale(ratio, ratio)
-            context.clearRect(0, 0, settings.width * ratio, settings.height * ratio)
-            context.drawImage(staticMap, 0, 0, settings.width, settings.height)
-
-            for (var i in settings.data) {
-                var element = settings.data[i]
-                if (element.dynamicpaint)
-                    element.dynamicpaint(context, dataPath, element.hoverElement)
-            }
-
-            context.restore()
-        }
-
-        /*function translatePoint(point) {
-            return [point[0] / zoomScale - zoomTranslate[0],
-                point[1] / zoomScale - zoomTranslate[1]
-            ]
-        }*/
-
-        function click() {
-            var point = /*translatePoint(*/d3.mouse(this)/*)*/
-
-            for (var i in settings.data) {
-                var element = settings.data[i]
-                if (!element.click)
-                    continue
-
-                var lookup = element.lookupTree.search([point[0], point[1], point[0], point[1]])
-                for (var j in lookup) {
-                    var feature = lookup[j][4]
-                    if (inside(settings.projection.invert(point), feature))
-                        element.click(feature)
-                }
-            }
-        }
-
-        function hover() {
-            var point = /*translatePoint(*/d3.mouse(this)/*)*/,
-                repaint = false
-
-            for (var i in settings.data) {
-                var element = settings.data[i]
-                var lookup = element.lookupTree.search([point[0], point[1], point[0], point[1]])
-                var isInside = false
-                for (var j in lookup) {
-                    var feature = lookup[j][4]
-                    if (inside(settings.projection.invert(point), feature)) {
-                        isInside = true
-                        if (element.hoverElement == feature) // FIXME is this mutability hack a good thang?
-                            continue
-                        element.hoverElement = feature
-                        repaint = true
-                    }
-                }
-                if (!isInside && element.hoverElement) {
-                    element.hoverElement = false
-                    repaint = true
-                }
-            }
-            if (repaint)
-                paint()
-        }
-
-        this.init = init
-        this.features = function() {
-            return features
-        }
-        this.path = function() {
-            return dataPath
-        }
-        this.settings = function() {
-            return settings
-        }
-        this.context = function() {
-            return context
-        }
-        this.ratio = function() {
-            return ratio
+        this.paint = function() {
+            map.paint()
         }
     }
 }()
