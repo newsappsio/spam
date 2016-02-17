@@ -233,8 +233,8 @@ var ZoomableCanvasMap;
 
             context.drawImage(settings.background,
                 imageTranslate[0], imageTranslate[1],
-                (translatedMax[0] - translatedZero[0]) * settings.backgroundScale * settings.ratio,
-                (translatedMax[1] - translatedZero[1]) * settings.backgroundScale * settings.ratio,
+                Math.floor((translatedMax[0] - translatedZero[0]) * settings.backgroundScale * settings.ratio),
+                Math.floor((translatedMax[1] - translatedZero[1]) * settings.backgroundScale * settings.ratio),
                 translatedZero[0], translatedZero[1],
                 translatedMax[0] - translatedZero[0],
                 translatedMax[1] - translatedZero[1])
@@ -345,6 +345,8 @@ var ZoomableCanvasMap;
                 .append("canvas")
             context = canvas.node().getContext("2d")
             area = 1 / settings.projection.scale() / settings.ratio
+            settings.scale = 1.2
+            settings.backgroundScale = 1.2
 
             canvas.attr("width", settings.width * settings.ratio)
             canvas.attr("height", settings.height * settings.ratio)
