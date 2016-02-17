@@ -85,7 +85,8 @@ var ZoomableCanvasMap;
                 translate: [0, 0],
                 background: null,
                 backgroundScale: 1,
-                backgroundTranslate: [0, 0]
+                backgroundTranslate: [0, 0],
+                map: this
             }, parameters),
             simplify = d3.geo.transform({
                 point: function(x, y, z) {
@@ -93,8 +94,7 @@ var ZoomableCanvasMap;
                 }
             }),
             canvas = null,
-            context = null,
-            map = this
+            context = null
 
         if (parameters.projection) {
             var dataPath = d3.geo.path().projection({
@@ -159,8 +159,8 @@ var ZoomableCanvasMap;
 
             dataPath.context(context)
             context.clearRect(0, 0, settings.width * settings.ratio, settings.height * settings.ratio)
-            /*context.save()
-            context.scale(settings.ratio, settings.ratio)*/
+            context.save()
+            context.scale(settings.ratio, settings.ratio)
 
             // TODO move rtree part out?
             for (var i in settings.data) {
@@ -171,18 +171,16 @@ var ZoomableCanvasMap;
             settings.backgroundScale = settings.scale
             settings.backgroundTranslate = settings.translate
             var callback = function() {
-                /*for (var i in settings.data) {
+                for (var i in settings.data) {
                     var element = settings.data[i]
 
                     if (element.dynamicpaint)
                         element.dynamicpaint(context, dataPath, null)
                 }
 
-                context.restore()*/
-                //context.restore()
-                paint()
+                context.restore()
             }
-            //saveBackground(canvas, dataPath, settings.background, callback)
+            saveBackground(canvas, dataPath, settings.background, callback)
 
             //Prevent another call to the init method
             this.init = function() {}
@@ -205,9 +203,6 @@ var ZoomableCanvasMap;
         }
 
         function saveBackground(saveCanvas, saveDataPath, background, callback) {
-            var context = saveDataPath.context()
-            context.save()
-            context.scale(settings.scale * settings.ratio, settings.scale * settings.ratio)
             for (var i in settings.data) {
                 var element = settings.data[i]
                 paintBackgroundElement(element, saveDataPath)
@@ -215,13 +210,12 @@ var ZoomableCanvasMap;
 
             background.onload = callback
             background.src = saveCanvas.node().toDataURL()
-
-            context.restore()
         }
 
         function paint() {
             context.save()
             context.scale(settings.ratio * settings.scale, settings.ratio * settings.scale)
+            context.translate(settings.translate[0], settings.translate[1])
             context.clearRect(0, 0, settings.width * settings.ratio, settings.height * settings.ratio)
 
             var imageTranslate = [(settings.backgroundTranslate[0] - settings.translate[0])
@@ -230,6 +224,10 @@ var ZoomableCanvasMap;
                     * settings.backgroundScale * settings.ratio],
                 translatedZero = translatePoint([0, 0]),
                 translatedMax = translatePoint([settings.width, settings.height])
+            console.log(imageTranslate)
+            console.log(translatedZero)
+            console.log(translatedMax)
+            console.log(translatedMax[0] - translatedZero[0])
 
             context.drawImage(settings.background,
                 imageTranslate[0], imageTranslate[1],
@@ -267,7 +265,7 @@ var ZoomableCanvasMap;
                 for (var j in lookup) {
                     var feature = lookup[j][4]
                     if (inside(settings.projection.invert(point), feature))
-                        element.click(map, feature)
+                        element.click(settings.map, feature)
                 }
             }
         }
@@ -338,6 +336,8 @@ var ZoomableCanvasMap;
                 }
             })
 
+        settings.map = this
+
         this.init = function() {
             map.init()
 
@@ -345,8 +345,6 @@ var ZoomableCanvasMap;
                 .append("canvas")
             context = canvas.node().getContext("2d")
             area = 1 / settings.projection.scale() / settings.ratio
-            settings.scale = 1.2
-            settings.backgroundScale = 1.2
 
             canvas.attr("width", settings.width * settings.ratio)
             canvas.attr("height", settings.height * settings.ratio)
@@ -357,12 +355,70 @@ var ZoomableCanvasMap;
 
             dataPath.context(context)
 
+            var scale = 1.2, translate = [0, 0]
+            settings.scale = scale
+            settings.translate = translate
+            area = 1 / settings.projection.scale() / settings.scale / settings.ratio
+
+            context.save()
+            context.scale(settings.scale * settings.ratio, settings.scale * settings.ratio)
+            context.translate(settings.translate[0], settings.translate[1])
+            console.log("SAVE BG")
             map.saveBackground(canvas, dataPath, settings.background, function() {
+                console.log("PAINT")
+                context.restore()
+                settings.backgroundScale = settings.scale
+                settings.backgroundTranslate = settings.translate
                 map.paint()
             })
         }
         this.paint = function() {
             map.paint()
+        }
+        this.zoom = function(d) {
+            var bounds = dataPath.bounds(d),
+                dx = bounds[1][0] - bounds[0][0],
+                dy = bounds[1][1] - bounds[0][1],
+                bx = (bounds[0][0] + bounds[1][0]) / 2,
+                by = (bounds[0][1] + bounds[1][1]) / 2,
+                scale = 0.7 * // TODO bring back zoomScaleFactor?
+                    Math.min(settings.width / dx, settings.height / dy),
+                translate = [-bx + settings.width / settings.scale / 2,
+                                      -by + settings.height / settings.scale / 2]
+            /*d3.transition()
+                .duration(300)
+                .ease("linear")
+                .tween("zoom", function() {
+                    var i = d3.interpolateNumber(settings.scale, scale)
+                    var interpolatedTranslate = d3.interpolateArray(settings.translate, translate)
+                    var otherOldTranslate = settings.translate
+                    area = 1 / scale / settings.projection.scale() / 4
+                    return function(t) {
+                        settings.scale = i(t)
+                        var iT = interpolatedTranslate(t)
+                        settings.translate = [otherOldTranslate[0] + (iT[0] - otherOldTranslate[0]) * scale / i(t),
+                            otherOldTranslate[1] + (iT[1] - otherOldTranslate[1]) * scale / i(t)
+                        ]
+                        map.paint()
+                    }
+                })
+                .each("end", function() {*/
+                    settings.scale = scale
+                    settings.translate = translate
+                    area = 1 / settings.projection.scale() / settings.scale / settings.ratio
+
+                    context.save()
+                    context.scale(settings.scale * settings.ratio, settings.scale * settings.ratio)
+                    context.translate(settings.translate[0], settings.translate[1])
+                    console.log("SAVE BG")
+                    map.saveBackground(canvas, dataPath, settings.background, function() {
+                        console.log("PAINT")
+                        context.restore()
+                        settings.backgroundScale = settings.scale
+                        settings.backgroundTranslate = settings.translate
+                        map.paint()
+                    })
+                //})
         }
     }
 }()
