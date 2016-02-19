@@ -134,6 +134,8 @@ var ZoomableCanvasMap;
         }
         $(this).height(settings.height)
 
+        // TODO make this code more playful
+
         function init() {
             canvas = d3.select(settings.element)
                 .append("canvas")
@@ -228,14 +230,15 @@ var ZoomableCanvasMap;
             console.log(translatedZero)
             console.log(translatedMax)
             console.log(translatedMax[0] - translatedZero[0])
+            console.log(settings.backgroundScale)
 
             context.drawImage(settings.background,
                 imageTranslate[0], imageTranslate[1],
                 Math.floor((translatedMax[0] - translatedZero[0]) * settings.backgroundScale * settings.ratio),
                 Math.floor((translatedMax[1] - translatedZero[1]) * settings.backgroundScale * settings.ratio),
                 translatedZero[0], translatedZero[1],
-                translatedMax[0] - translatedZero[0],
-                translatedMax[1] - translatedZero[1])
+                (translatedMax[0] - translatedZero[0]) / settings.ratio,
+                (translatedMax[1] - translatedZero[1]) / settings.ratio)
 
             // FIXME this needs a way for the callback to use the lookupTree?
             for (var i in settings.data) {
