@@ -162,7 +162,6 @@ var ZoomableCanvasMap;
             dataPath.context(context)
             context.clearRect(0, 0, settings.width * settings.ratio, settings.height * settings.ratio)
             context.save()
-            // TODO why does this line break it?
             context.scale(settings.ratio, settings.ratio)
 
             // TODO move rtree part out?
@@ -364,18 +363,19 @@ var ZoomableCanvasMap;
 
             dataPath.context(context)
 
-            /*var scale = 1.2, translate = [0, 0]
+            var scale = 1.2, translate = [0, 0]
             settings.scale = scale
             settings.translate = translate
             area = 1 / settings.projection.scale() / settings.scale / settings.ratio
 
-            context.save()
+            // TODO fix backgroundScale stuff?
+            /*context.save()
             context.scale(settings.scale * settings.ratio, settings.scale * settings.ratio)
             context.translate(settings.translate[0], settings.translate[1])
             map.saveBackground(canvas, dataPath, settings.background, function() {
                 context.restore()
                 settings.backgroundScale = settings.scale
-                settings.backgroundTranslate = settings.translate
+                //settings.backgroundTranslate = settings.translate
                 map.paint()
             })*/
         }
