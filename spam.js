@@ -162,7 +162,7 @@ var ZoomableCanvasMap;
             dataPath.context(context)
             context.clearRect(0, 0, settings.width * settings.ratio, settings.height * settings.ratio)
             context.save()
-            context.scale(settings.ratio, settings.ratio)
+            //context.scale(settings.ratio, settings.ratio)
 
             // TODO move rtree part out?
             for (var i in settings.data) {
@@ -215,10 +215,11 @@ var ZoomableCanvasMap;
         }
 
         function paint() {
+            console.log("PAINT")
             context.save()
-            context.scale(settings.ratio * settings.scale, settings.ratio * settings.scale)
-            context.translate(settings.translate[0], settings.translate[1])
             context.clearRect(0, 0, settings.width * settings.ratio, settings.height * settings.ratio)
+            context.scale(settings.scale * settings.ratio, settings.scale * settings.ratio)
+            context.translate(settings.translate[0], settings.translate[1])
 
             var imageTranslate = [(settings.backgroundTranslate[0] - settings.translate[0])
                     * settings.backgroundScale * settings.ratio,
@@ -226,23 +227,26 @@ var ZoomableCanvasMap;
                     * settings.backgroundScale * settings.ratio],
                 translatedZero = translatePoint([0, 0]),
                 translatedMax = translatePoint([settings.width, settings.height])
-            console.log(imageTranslate)
-            console.log(translatedZero)
-            console.log(translatedMax)
-            console.log(translatedMax[0] - translatedZero[0])
-            console.log(settings.backgroundScale)
 
+            console.log(settings.translate)
+            console.log("Image dimensions are " + settings.background.width + " x " + settings.background.height)
+            console.log("We are showing")
+            var imageWidth = Math.floor((translatedMax[0] - translatedZero[0]) * settings.backgroundScale * settings.ratio)
+            var imageHeight = Math.floor((translatedMax[1] - translatedZero[1]) * settings.backgroundScale * settings.ratio)
+
+            console.log("X: " + imageTranslate[0] + " Y: " + (imageTranslate[1]) + " width: " + imageWidth + " height " + imageHeight)
             context.drawImage(settings.background,
                 imageTranslate[0], imageTranslate[1],
                 Math.floor((translatedMax[0] - translatedZero[0]) * settings.backgroundScale * settings.ratio),
                 Math.floor((translatedMax[1] - translatedZero[1]) * settings.backgroundScale * settings.ratio),
-                translatedZero[0], translatedZero[1],
-                (translatedMax[0] - translatedZero[0]) / settings.ratio,
-                (translatedMax[1] - translatedZero[1]) / settings.ratio)
+                translatedZero[0], - translatedZero[1],
+                translatedMax[0] - translatedZero[0],
+                translatedMax[1] - translatedZero[1])
 
             // FIXME this needs a way for the callback to use the lookupTree?
             for (var i in settings.data) {
                 var element = settings.data[i]
+                console.log(element.hoverElement)
                 if (element.dynamicpaint)
                     element.dynamicpaint(context, dataPath, element.hoverElement)
             }
@@ -277,27 +281,28 @@ var ZoomableCanvasMap;
             var point = translatePoint(d3.mouse(this)),
                 repaint = false
 
+            console.log("HOVER")
+
             for (var i in settings.data) {
                 var element = settings.data[i]
                 var lookup = element.lookupTree.search([point[0], point[1], point[0], point[1]])
                 var isInside = false
                 for (var j in lookup) {
                     var feature = lookup[j][4]
+                    isInside = false
                     if (inside(settings.projection.invert(point), feature)) {
                         isInside = true
+                        console.log(feature)
                         if (element.hoverElement == feature) // FIXME is this mutability hack a good thang?
                             continue
                         element.hoverElement = feature
                         repaint = true
                     }
-                }
-                if (!isInside && element.hoverElement) {
-                    element.hoverElement = false
-                    repaint = true
+                    isInside || !element.hoverElement || (element.hoverElement = false, repaint = true)
+                    console.log(element.hoverElement)
                 }
             }
-            if (repaint)
-                paint()
+            repaint && paint()
         }
 
         this.init = init
@@ -366,9 +371,7 @@ var ZoomableCanvasMap;
             context.save()
             context.scale(settings.scale * settings.ratio, settings.scale * settings.ratio)
             context.translate(settings.translate[0], settings.translate[1])
-            console.log("SAVE BG")
             map.saveBackground(canvas, dataPath, settings.background, function() {
-                console.log("PAINT")
                 context.restore()
                 settings.backgroundScale = settings.scale
                 settings.backgroundTranslate = settings.translate
@@ -379,6 +382,7 @@ var ZoomableCanvasMap;
             map.paint()
         }
         this.zoom = function(d) {
+            console.log("ZOOM")
             var bounds = dataPath.bounds(d),
                 dx = bounds[1][0] - bounds[0][0],
                 dy = bounds[1][1] - bounds[0][1],
@@ -386,8 +390,11 @@ var ZoomableCanvasMap;
                 by = (bounds[0][1] + bounds[1][1]) / 2,
                 scale = 0.7 * // TODO bring back zoomScaleFactor?
                     Math.min(settings.width / dx, settings.height / dy),
-                translate = [-bx + settings.width / settings.scale / 2,
-                                      -by + settings.height / settings.scale / 2]
+                translate = [-bx + settings.width / scale / 2,
+                             -by + settings.height / scale / 2]
+
+            console.log(bx)
+            console.log(by)
             /*d3.transition()
                 .duration(300)
                 .ease("linear")
@@ -410,7 +417,7 @@ var ZoomableCanvasMap;
                     settings.translate = translate
                     area = 1 / settings.projection.scale() / settings.scale / settings.ratio
 
-                    context.save()
+                    /*context.save()
                     context.scale(settings.scale * settings.ratio, settings.scale * settings.ratio)
                     context.translate(settings.translate[0], settings.translate[1])
                     console.log("SAVE BG")
@@ -418,9 +425,9 @@ var ZoomableCanvasMap;
                         console.log("PAINT")
                         context.restore()
                         settings.backgroundScale = settings.scale
-                        settings.backgroundTranslate = settings.translate
+                        settings.backgroundTranslate = settings.translate*/
                         map.paint()
-                    })
+                    //})
                 //})
         }
     }
