@@ -162,7 +162,8 @@ var ZoomableCanvasMap;
             dataPath.context(context)
             context.clearRect(0, 0, settings.width * settings.ratio, settings.height * settings.ratio)
             context.save()
-            //context.scale(settings.ratio, settings.ratio)
+            // TODO why does this line break it?
+            context.scale(settings.ratio, settings.ratio)
 
             // TODO move rtree part out?
             for (var i in settings.data) {
@@ -239,7 +240,7 @@ var ZoomableCanvasMap;
                 imageTranslate[0], imageTranslate[1],
                 Math.floor((translatedMax[0] - translatedZero[0]) * settings.backgroundScale * settings.ratio),
                 Math.floor((translatedMax[1] - translatedZero[1]) * settings.backgroundScale * settings.ratio),
-                translatedZero[0], - translatedZero[1],
+                translatedZero[0], translatedZero[1],
                 translatedMax[0] - translatedZero[0],
                 translatedMax[1] - translatedZero[1])
 
@@ -363,7 +364,7 @@ var ZoomableCanvasMap;
 
             dataPath.context(context)
 
-            var scale = 1.2, translate = [0, 0]
+            /*var scale = 1.2, translate = [0, 0]
             settings.scale = scale
             settings.translate = translate
             area = 1 / settings.projection.scale() / settings.scale / settings.ratio
@@ -376,7 +377,7 @@ var ZoomableCanvasMap;
                 settings.backgroundScale = settings.scale
                 settings.backgroundTranslate = settings.translate
                 map.paint()
-            })
+            })*/
         }
         this.paint = function() {
             map.paint()
