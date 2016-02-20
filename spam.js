@@ -169,7 +169,7 @@ var ZoomableCanvasMap;
                 createRTree(settings.data[i], dataPath)
             }
 
-            settings.background = new Image()
+            /*settings.background = new Image()
             settings.backgroundScale = settings.scale
             settings.backgroundTranslate = settings.translate
             var callback = function() {
@@ -182,7 +182,8 @@ var ZoomableCanvasMap;
 
                 context.restore()
             }
-            saveBackground(canvas, dataPath, settings.background, callback)
+            saveBackground(canvas, dataPath, settings.background, callback)*/
+            context.restore()
 
             //Prevent another call to the init method
             this.init = function() {}
@@ -233,15 +234,27 @@ var ZoomableCanvasMap;
             console.log("We are showing")
             var imageWidth = Math.floor((translatedMax[0] - translatedZero[0]) * settings.backgroundScale * settings.ratio)
             var imageHeight = Math.floor((translatedMax[1] - translatedZero[1]) * settings.backgroundScale * settings.ratio)
+            var widthFactor = 1
+            var heightFactor = 1
+
+            if (imageWidth > settings.width * settings.ratio) {
+                widthFactor = settings.width * settings.ratio / imageWidth
+                imageWidth = settings.width * settings.ratio
+            }
+
+            if (imageHeight > settings.height * settings.ratio) {
+                heightFactor = settings.height * settings.ratio / imageHeight
+                imageHeight = settings.height * settings.ratio
+            }
 
             console.log("X: " + imageTranslate[0] + " Y: " + (imageTranslate[1]) + " width: " + imageWidth + " height " + imageHeight)
             context.drawImage(settings.background,
                 imageTranslate[0], imageTranslate[1],
-                Math.floor((translatedMax[0] - translatedZero[0]) * settings.backgroundScale * settings.ratio),
-                Math.floor((translatedMax[1] - translatedZero[1]) * settings.backgroundScale * settings.ratio),
+                imageWidth,
+                imageHeight,
                 translatedZero[0], translatedZero[1],
-                translatedMax[0] - translatedZero[0],
-                translatedMax[1] - translatedZero[1])
+                (translatedMax[0] - translatedZero[0]) * widthFactor,
+                (translatedMax[1] - translatedZero[1]) * heightFactor)
 
             // FIXME this needs a way for the callback to use the lookupTree?
             for (var i in settings.data) {
@@ -364,20 +377,23 @@ var ZoomableCanvasMap;
             dataPath.context(context)
 
             var scale = 1.2, translate = [0, 0]
-            settings.scale = scale
-            settings.translate = translate
+            /*settings.scale = scale
+            settings.translate = translate*/
             area = 1 / settings.projection.scale() / settings.scale / settings.ratio
 
             // TODO fix backgroundScale stuff?
-            /*context.save()
-            context.scale(settings.scale * settings.ratio, settings.scale * settings.ratio)
+            context.save()
+            context.scale(scale * settings.ratio, scale * settings.ratio)
             context.translate(settings.translate[0], settings.translate[1])
-            map.saveBackground(canvas, dataPath, settings.background, function() {
+
+            var background = new Image()
+            map.saveBackground(canvas, dataPath, background, function() {
                 context.restore()
-                settings.backgroundScale = settings.scale
+                settings.background = background
+                settings.backgroundScale = scale
                 //settings.backgroundTranslate = settings.translate
                 map.paint()
-            })*/
+            })
         }
         this.paint = function() {
             map.paint()
