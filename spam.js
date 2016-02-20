@@ -169,7 +169,7 @@ var ZoomableCanvasMap;
                 createRTree(settings.data[i], dataPath)
             }
 
-            /*settings.background = new Image()
+            settings.background = new Image()
             settings.backgroundScale = settings.scale
             settings.backgroundTranslate = settings.translate
             var callback = function() {
@@ -182,7 +182,7 @@ var ZoomableCanvasMap;
 
                 context.restore()
             }
-            saveBackground(canvas, dataPath, settings.background, callback)*/
+            saveBackground(canvas, dataPath, settings.background, callback)
             context.restore()
 
             //Prevent another call to the init method
@@ -375,25 +375,6 @@ var ZoomableCanvasMap;
             context.lineCap = "round"
 
             dataPath.context(context)
-
-            var scale = 1.2, translate = [0, 0]
-            /*settings.scale = scale
-            settings.translate = translate*/
-            area = 1 / settings.projection.scale() / settings.scale / settings.ratio
-
-            // TODO fix backgroundScale stuff?
-            context.save()
-            context.scale(scale * settings.ratio, scale * settings.ratio)
-            context.translate(settings.translate[0], settings.translate[1])
-
-            var background = new Image()
-            map.saveBackground(canvas, dataPath, background, function() {
-                context.restore()
-                settings.background = background
-                settings.backgroundScale = scale
-                //settings.backgroundTranslate = settings.translate
-                map.paint()
-            })
         }
         this.paint = function() {
             map.paint()
@@ -434,17 +415,19 @@ var ZoomableCanvasMap;
                     settings.translate = translate
                     area = 1 / settings.projection.scale() / settings.scale / settings.ratio
 
-                    /*context.save()
+                    context.save()
                     context.scale(settings.scale * settings.ratio, settings.scale * settings.ratio)
                     context.translate(settings.translate[0], settings.translate[1])
                     console.log("SAVE BG")
-                    map.saveBackground(canvas, dataPath, settings.background, function() {
+                    var background = new Image()
+                    map.saveBackground(canvas, dataPath, background, function() {
                         console.log("PAINT")
                         context.restore()
+                        settings.background = background
                         settings.backgroundScale = settings.scale
-                        settings.backgroundTranslate = settings.translate*/
+                        settings.backgroundTranslate = settings.translate
                         map.paint()
-                    //})
+                    })
                 //})
         }
     }
