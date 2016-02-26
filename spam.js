@@ -428,10 +428,7 @@ var ZoomableCanvasMap;
                 height: settings.height,
                 map: settings.map
             }
-            for (var i in settings.data) {
-                var element = settings.data[i]
-                paintBackgroundElement(element, parameters)
-            }
+            var index = 0
             // FIXME when zooming we sometimes have missing parts of the bg, fix that?
             // Prob add stuff to the bg? (Draw the image, then paint some polygon parts on the left)
             // Or have a bigger area painted on the pic?
@@ -451,6 +448,11 @@ var ZoomableCanvasMap;
                             otherOldTranslate[1] + (iT[1] - otherOldTranslate[1]) * scale / i(t)
                         ]
                         map.paint()
+                        if (index != settings.data.length) {
+                            var element = settings.data[index]
+                            paintBackgroundElement(element, parameters)
+                            ++index
+                        }
                     }
                 })
                 .each("end", function() {
@@ -458,6 +460,10 @@ var ZoomableCanvasMap;
                     settings.translate = translate
                     area = 1 / settings.projection.scale() / settings.scale / settings.ratio
 
+                    for (; index != settings.data.length; ++index) {
+                        var element = settings.data[index]
+                        paintBackgroundElement(element, parameters)
+                    }
                     console.log("SAVE BG")
 
                     background.onload = function() {
