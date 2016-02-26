@@ -387,14 +387,14 @@ var ZoomableCanvasMap;
                 dy = bounds[1][1] - bounds[0][1],
                 bx = (bounds[0][0] + bounds[1][0]) / 2,
                 by = (bounds[0][1] + bounds[1][1]) / 2,
-                scale = 0.7 * // TODO bring back zoomScaleFactor?
+                scale = 0.1 * // TODO bring back zoomScaleFactor?
                     Math.min(settings.width / dx, settings.height / dy),
                 translate = [-bx + settings.width / scale / 2,
                              -by + settings.height / scale / 2]
 
             console.log(bx)
             console.log(by)
-            /*d3.transition()
+            d3.transition()
                 .duration(300)
                 .ease("linear")
                 .tween("zoom", function() {
@@ -411,7 +411,7 @@ var ZoomableCanvasMap;
                         map.paint()
                     }
                 })
-                .each("end", function() {*/
+                .each("end", function() {
                     settings.scale = scale
                     settings.translate = translate
                     area = 1 / settings.projection.scale() / settings.scale / settings.ratio
@@ -429,7 +429,7 @@ var ZoomableCanvasMap;
                         settings.backgroundTranslate = settings.translate
                         map.paint()
                     })
-                //})
+                })
         }
     }
 }()
