@@ -65,12 +65,6 @@ var ZoomableCanvasMap;
         for (var j in element.features.features) {
             var bounds = dataPath.bounds(element.features.features[j])
             // FIXME does bulk insert work faster?
-
-            if (element.features.features[j].properties.name != "Fuente Palmera")
-                continue
-            d3.debug = true
-            var bounds = dataPath.bounds(element.features.features[j])
-            d3.debug = false
             element.lookupTree.insert([
                 bounds[0][0].toFixed(0),
                 bounds[0][1].toFixed(0),
@@ -78,7 +72,6 @@ var ZoomableCanvasMap;
                 bounds[1][1].toFixed(0),
                 element.features.features[j]
             ])
-            break
         }
     }
 
@@ -97,13 +90,9 @@ var ZoomableCanvasMap;
             }, parameters),
             simplify = d3.geo.transform({
                 point: function(x, y, z) {
-                    /*if (z >= settings.area) {
-                        if (d3.debug) {
-                            console.log("Stream " + x + ", " + y)
-                            console.log(settings.projection([x, y]))
-                        }*/
+                    if (z >= settings.area) {
                         this.stream.point(x, y)
-                    //}
+                    }
                 }
             }),
             canvas = null,
@@ -127,10 +116,6 @@ var ZoomableCanvasMap;
                 .center([(b[1][0] + b[0][0]) / 2, (b[1][1] + b[0][1]) / 2])
             var dataPath = d3.geo.path().projection({
                     stream: function(s) {
-                        if (d3.debug) {
-                            console.log("Stream")
-                            console.log(s)
-                        }
                         return simplify.stream(settings.projection.stream(s))
                     }
                 })
@@ -217,17 +202,9 @@ var ZoomableCanvasMap;
             for (var j in element.features.features) {
                 var bounds = saveDataPath.bounds(element.features.features[j])
 
-                if (bounds[1][0] - bounds[0][0] < 10)
-                    continue
-                console.log(bounds[1][0] - bounds[0][0])
-                d3.debug = true
                 saveDataPath.context().beginPath()
-                console.log(element.features.features[j])
                 saveDataPath(element.features.features[j])
-                console.log("END PATH")
                 element.paintfeature(saveDataPath.context(), element.features.features[j])
-                d3.debug = false
-                break
             }
             element.postpaint(saveDataPath.context())
         }
@@ -243,7 +220,6 @@ var ZoomableCanvasMap;
         }
 
         function paint() {
-            console.log("PAINT")
             context.save()
             context.clearRect(0, 0, settings.width * settings.ratio, settings.height * settings.ratio)
             context.scale(settings.scale * settings.ratio, settings.scale * settings.ratio)
@@ -256,9 +232,9 @@ var ZoomableCanvasMap;
                 translatedZero = translatePoint([0, 0]),
                 translatedMax = translatePoint([settings.width, settings.height])
 
-            console.log(settings.translate)
+            /*console.log(settings.translate)
             console.log("Image dimensions are " + settings.background.width + " x " + settings.background.height)
-            console.log("We are showing")
+            console.log("We are showing")*/
             var imageWidth = Math.floor((translatedMax[0] - translatedZero[0]) * settings.backgroundScale * settings.ratio)
             var imageHeight = Math.floor((translatedMax[1] - translatedZero[1]) * settings.backgroundScale * settings.ratio)
             var widthFactor = 1
@@ -274,7 +250,7 @@ var ZoomableCanvasMap;
                 imageHeight = settings.height * settings.ratio
             }
 
-            console.log("X: " + imageTranslate[0] + " Y: " + (imageTranslate[1]) + " width: " + imageWidth + " height " + imageHeight)
+            //console.log("X: " + imageTranslate[0] + " Y: " + (imageTranslate[1]) + " width: " + imageWidth + " height " + imageHeight)
             context.drawImage(settings.background,
                 imageTranslate[0], imageTranslate[1],
                 imageWidth,
@@ -286,7 +262,6 @@ var ZoomableCanvasMap;
             // FIXME this needs a way for the callback to use the lookupTree?
             for (var i in settings.data) {
                 var element = settings.data[i]
-                console.log(element.hoverElement)
                 if (element.dynamicpaint)
                     element.dynamicpaint(context, dataPath, element.hoverElement)
             }
@@ -302,8 +277,6 @@ var ZoomableCanvasMap;
 
         function click() {
             var point = translatePoint(d3.mouse(this))
-
-            console.log("CLICK")
 
             for (var i in settings.data) {
                 var element = settings.data[i]
@@ -337,7 +310,10 @@ var ZoomableCanvasMap;
                         element.hoverElement = feature
                         repaint = true
                     }
-                    isInside || !element.hoverElement || (element.hoverElement = false, repaint = true)
+                    if (!isInside && element.hoverElement) {
+                        element.hoverElement = false
+                        repaint = true
+                    }
                 }
             }
             repaint && paint()
