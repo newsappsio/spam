@@ -197,22 +197,29 @@ var ZoomableCanvasMap;
         // Then we can use the paintElement class, to paint stuff at each zoom step :)
         // With the hope that it will be sorta smooth
         // need to test on mobile as well
-        function paintBackgroundElement(element, saveDataPath) {
-            element.prepaint(saveDataPath.context())
+        function paintBackgroundElement(element, parameters) {
+            element.prepaint(parameters)
             for (var j in element.features.features) {
-                var bounds = saveDataPath.bounds(element.features.features[j])
+                var bounds = parameters.path.bounds(element.features.features[j])
 
-                saveDataPath.context().beginPath()
-                saveDataPath(element.features.features[j])
-                element.paintfeature(saveDataPath.context(), element.features.features[j])
+                parameters.context.beginPath()
+                parameters.path(element.features.features[j])
+                element.paintfeature(parameters, element.features.features[j])
             }
-            element.postpaint(saveDataPath.context())
+            element.postpaint(parameters)
         }
 
         function saveBackground(saveCanvas, saveDataPath, background, callback) {
+            var parameters = {
+                path: saveDataPath,
+                context: saveDataPath.context(),
+                scale: settings.scale,
+                translate: settings.translate,
+                map: settings.map
+            }
             for (var i in settings.data) {
                 var element = settings.data[i]
-                paintBackgroundElement(element, saveDataPath)
+                paintBackgroundElement(element, parameters)
             }
 
             background.onload = callback
@@ -260,10 +267,18 @@ var ZoomableCanvasMap;
                 (translatedMax[1] - translatedZero[1]) * heightFactor)
 
             // FIXME this needs a way for the callback to use the lookupTree?
+            var parameters = {
+                path: dataPath,
+                context: dataPath.context(),
+                scale: settings.scale,
+                translate: settings.translate,
+                map: settings.map
+            }
+            settings.area = 1 / settings.projection.scale() / settings.scale / settings.ratio
             for (var i in settings.data) {
                 var element = settings.data[i]
                 if (element.dynamicpaint)
-                    element.dynamicpaint(context, dataPath, element.hoverElement)
+                    element.dynamicpaint(parameters, element.hoverElement)
             }
 
             context.restore()
@@ -299,18 +314,15 @@ var ZoomableCanvasMap;
             for (var i in settings.data) {
                 var element = settings.data[i]
                 var lookup = element.lookupTree.search([point[0], point[1], point[0], point[1]])
-                var isInside = false
                 for (var j in lookup) {
                     var feature = lookup[j][4]
-                    isInside = false
                     if (inside(settings.projection.invert(point), feature)) {
-                        isInside = true
                         if (element.hoverElement == feature) // FIXME is this mutability hack a good thang?
-                            continue
+                            break
                         element.hoverElement = feature
                         repaint = true
-                    }
-                    if (!isInside && element.hoverElement) {
+                        break
+                    } else if (element.hoverElement) {
                         element.hoverElement = false
                         repaint = true
                     }
@@ -416,6 +428,7 @@ var ZoomableCanvasMap;
                     settings.translate = translate
                     area = 1 / settings.projection.scale() / settings.scale / settings.ratio
 
+                    // We have weird artefacts sometimes
                     context.save()
                     context.scale(settings.scale * settings.ratio, settings.scale * settings.ratio)
                     context.translate(settings.translate[0], settings.translate[1])

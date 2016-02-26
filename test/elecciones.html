@@ -53,21 +53,21 @@
                         element: ".js-map",
                         data: [{
                             features: topojson.feature(d, d.objects["municipios"]),
-                            prepaint: function(context) {
+                            prepaint: function(parameters) {
 
                             },
-                            paintfeature: function(context, d) {
+                            paintfeature: function(parameters, d) {
                                 if (d.properties.name[0] < "H")
-                                    context.fillStyle = "blue"
+                                    parameters.context.fillStyle = "blue"
                                 else
-                                    context.fillStyle = "red"
-                                context.fill()
+                                    parameters.context.fillStyle = "red"
+                                parameters.context.fill()
                             },
-                            postpaint: function(context) {
+                            postpaint: function(parameters) {
 
                             },
                             // TODO replace path with map?
-                            dynamicpaint: function(context, path, hover) { // TODO Is this path good?
+                            dynamicpaint: function(parameters, hover) {
                                 /*for (var i in clicked) {
                                     var element = clicked[i]
                                     context.beginPath()
@@ -85,9 +85,10 @@
                                                 b.properties.name == hover.properties.name)
                                     })
                                 if (mesh) {
-                                    context.beginPath()
-                                    path(hover)
-                                    context.stroke()
+                                    parameters.context.beginPath()
+                                    parameters.context.lineWidth = 1 / parameters.scale
+                                    parameters.path(hover)
+                                    parameters.context.stroke()
                                 }
                             },
                             click: function(map, d) { // TODO
@@ -101,15 +102,15 @@
                         },
                         {
                             features: topojson.feature(roads, roads.objects["roads"]),
-                            prepaint: function(context) {
+                            prepaint: function(parameters) {
 
                             },
-                            paintfeature: function(context, d) {
-                                context.lineWidth = 1
-                                context.strokeStyle = "black"
-                                context.stroke()
+                            paintfeature: function(parameters, d) {
+                                parameters.context.lineWidth = 1 / parameters.scale
+                                parameters.context.strokeStyle = "black"
+                                parameters.context.stroke()
                             },
-                            postpaint: function(context) {
+                            postpaint: function(parameters) {
 
                             }
                         }]
