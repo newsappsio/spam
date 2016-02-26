@@ -75,6 +75,23 @@ var ZoomableCanvasMap;
         }
     }
 
+    function paintBackgroundElement(element, parameters) {
+        element.prepaint(parameters)
+        var lookup = element.lookupTree.search([
+            parameters.translate[0],
+            parameters.translate[1],
+            parameters.width / parameters.scale - parameters.translate[0],
+            parameters.height / parameters.scale - parameters.translate[1]
+        ])
+        for (var j in lookup) {
+            var feature = lookup[j][4]
+            parameters.context.beginPath()
+            parameters.path(feature)
+            element.paintfeature(parameters, feature)
+        }
+        element.postpaint(parameters)
+    }
+
     function CanvasMap(parameters) {
         var settings = jQuery.extend({
                 height: 200,
@@ -197,17 +214,6 @@ var ZoomableCanvasMap;
         // Then we can use the paintElement class, to paint stuff at each zoom step :)
         // With the hope that it will be sorta smooth
         // need to test on mobile as well
-        function paintBackgroundElement(element, parameters) {
-            element.prepaint(parameters)
-            for (var j in element.features.features) {
-                var bounds = parameters.path.bounds(element.features.features[j])
-
-                parameters.context.beginPath()
-                parameters.path(element.features.features[j])
-                element.paintfeature(parameters, element.features.features[j])
-            }
-            element.postpaint(parameters)
-        }
 
         function saveBackground(saveCanvas, saveDataPath, background, callback) {
             var parameters = {
@@ -215,13 +221,14 @@ var ZoomableCanvasMap;
                 context: saveDataPath.context(),
                 scale: settings.scale,
                 translate: settings.translate,
+                width: settings.width,
+                height: settings.height,
                 map: settings.map
             }
             for (var i in settings.data) {
                 var element = settings.data[i]
                 paintBackgroundElement(element, parameters)
             }
-
             background.onload = callback
             background.src = saveCanvas.node().toDataURL()
         }
@@ -406,11 +413,29 @@ var ZoomableCanvasMap;
                 translate = [-bx + settings.width / scale / 2,
                              -by + settings.height / scale / 2]
 
-            console.log(bx)
-            console.log(by)
+            var background = new Image()
+
+            context.save()
+            context.scale(scale * settings.ratio, scale * settings.ratio)
+            context.translate(translate[0], translate[1])
+            context.clearRect(0, 0, settings.width, settings.height)
+            var parameters = {
+                path: dataPath,
+                context: context,
+                scale: scale,
+                translate: translate,
+                width: settings.width,
+                height: settings.height,
+                map: settings.map
+            }
+            for (var i in settings.data) {
+                var element = settings.data[i]
+                paintBackgroundElement(element, parameters)
+            }
             // FIXME when zooming we sometimes have missing parts of the bg, fix that?
             // Prob add stuff to the bg? (Draw the image, then paint some polygon parts on the left)
             // Or have a bigger area painted on the pic?
+            // TODO check why painting takes so long, make it faster by painting parts in the transition steps?
             d3.transition()
                 .duration(300)
                 .ease("linear")
@@ -433,21 +458,17 @@ var ZoomableCanvasMap;
                     settings.translate = translate
                     area = 1 / settings.projection.scale() / settings.scale / settings.ratio
 
-                    // We have weird artefacts sometimes
-                    context.save()
-                    context.scale(settings.scale * settings.ratio, settings.scale * settings.ratio)
-                    context.translate(settings.translate[0], settings.translate[1])
-                    context.clearRect(0, 0, settings.width, settings.height)
                     console.log("SAVE BG")
-                    var background = new Image()
-                    map.saveBackground(canvas, dataPath, background, function() {
+
+                    background.onload = function() {
                         console.log("PAINT")
                         context.restore()
                         settings.background = background
                         settings.backgroundScale = settings.scale
                         settings.backgroundTranslate = settings.translate
                         map.paint()
-                    })
+                    }
+                    background.src = canvas.node().toDataURL()
                 })
         }
     }
