@@ -228,7 +228,6 @@ var ZoomableCanvasMap;
 
         function paint() {
             context.save()
-            context.clearRect(0, 0, settings.width * settings.ratio, settings.height * settings.ratio)
             context.scale(settings.scale * settings.ratio, settings.scale * settings.ratio)
             context.translate(settings.translate[0], settings.translate[1])
 
@@ -238,6 +237,9 @@ var ZoomableCanvasMap;
                     * settings.backgroundScale * settings.ratio],
                 translatedZero = translatePoint([0, 0]),
                 translatedMax = translatePoint([settings.width, settings.height])
+
+            context.clearRect(translatedZero[0], translatedZero[1],
+                translatedMax[0], translatedMax[1])
 
             /*console.log(settings.translate)
             console.log("Image dimensions are " + settings.background.width + " x " + settings.background.height)
@@ -406,6 +408,9 @@ var ZoomableCanvasMap;
 
             console.log(bx)
             console.log(by)
+            // FIXME when zooming we sometimes have missing parts of the bg, fix that?
+            // Prob add stuff to the bg? (Draw the image, then paint some polygon parts on the left)
+            // Or have a bigger area painted on the pic?
             d3.transition()
                 .duration(300)
                 .ease("linear")
@@ -432,6 +437,7 @@ var ZoomableCanvasMap;
                     context.save()
                     context.scale(settings.scale * settings.ratio, settings.scale * settings.ratio)
                     context.translate(settings.translate[0], settings.translate[1])
+                    context.clearRect(0, 0, settings.width, settings.height)
                     console.log("SAVE BG")
                     var background = new Image()
                     map.saveBackground(canvas, dataPath, background, function() {
