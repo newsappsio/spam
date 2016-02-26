@@ -78,8 +78,8 @@ var ZoomableCanvasMap;
     function paintBackgroundElement(element, parameters) {
         element.prepaint(parameters)
         var lookup = element.lookupTree.search([
-            parameters.translate[0],
-            parameters.translate[1],
+            - parameters.translate[0],
+            - parameters.translate[1],
             parameters.width / parameters.scale - parameters.translate[0],
             parameters.height / parameters.scale - parameters.translate[1]
         ])
@@ -243,7 +243,7 @@ var ZoomableCanvasMap;
                 (settings.backgroundTranslate[1] - settings.translate[1])
                     * settings.backgroundScale * settings.ratio],
                 translatedZero = translatePoint([0, 0]),
-                translatedMax = translatePoint([settings.width, settings.height])
+                translatedMax = translatePoint([settings.width * settings.ratio, settings.height * settings.ratio])
 
             context.clearRect(translatedZero[0], translatedZero[1],
                 translatedMax[0], translatedMax[1])
