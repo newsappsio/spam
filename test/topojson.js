@@ -364,7 +364,8 @@
       // Infinity will be computed in the next step.
       for (var i = 0, n = arc.length, p; i < n; ++i) {
         p = arc[i];
-        absolute(arc[i] = [p[0], p[1], Infinity], i);
+        arc[i] = [p[0], p[1], Infinity, p[0], p[1]]
+        absolute(arc[i], i);
       }
 
       for (var i = 1, n = arc.length - 1; i < n; ++i) {
@@ -404,7 +405,10 @@
         }
       }
 
-      arc.forEach(relative);
+      for (var i = 0, n = arc.length, p; i < n; ++i) {
+        p = arc[i];
+        arc[i] = [p[3], p[4], p[2]]
+      }
     });
 
     function update(triangle) {

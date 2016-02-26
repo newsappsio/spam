@@ -65,6 +65,12 @@ var ZoomableCanvasMap;
         for (var j in element.features.features) {
             var bounds = dataPath.bounds(element.features.features[j])
             // FIXME does bulk insert work faster?
+
+            if (element.features.features[j].properties.name != "Fuente Palmera")
+                continue
+            d3.debug = true
+            var bounds = dataPath.bounds(element.features.features[j])
+            d3.debug = false
             element.lookupTree.insert([
                 bounds[0][0].toFixed(0),
                 bounds[0][1].toFixed(0),
@@ -72,6 +78,7 @@ var ZoomableCanvasMap;
                 bounds[1][1].toFixed(0),
                 element.features.features[j]
             ])
+            break
         }
     }
 
@@ -90,7 +97,13 @@ var ZoomableCanvasMap;
             }, parameters),
             simplify = d3.geo.transform({
                 point: function(x, y, z) {
-                    if (z >= settings.area) this.stream.point(x, y)
+                    /*if (z >= settings.area) {
+                        if (d3.debug) {
+                            console.log("Stream " + x + ", " + y)
+                            console.log(settings.projection([x, y]))
+                        }*/
+                        this.stream.point(x, y)
+                    //}
                 }
             }),
             canvas = null,
@@ -114,6 +127,10 @@ var ZoomableCanvasMap;
                 .center([(b[1][0] + b[0][0]) / 2, (b[1][1] + b[0][1]) / 2])
             var dataPath = d3.geo.path().projection({
                     stream: function(s) {
+                        if (d3.debug) {
+                            console.log("Stream")
+                            console.log(s)
+                        }
                         return simplify.stream(settings.projection.stream(s))
                     }
                 })
@@ -198,9 +215,19 @@ var ZoomableCanvasMap;
         function paintBackgroundElement(element, saveDataPath) {
             element.prepaint(saveDataPath.context())
             for (var j in element.features.features) {
+                var bounds = saveDataPath.bounds(element.features.features[j])
+
+                if (bounds[1][0] - bounds[0][0] < 10)
+                    continue
+                console.log(bounds[1][0] - bounds[0][0])
+                d3.debug = true
                 saveDataPath.context().beginPath()
+                console.log(element.features.features[j])
                 saveDataPath(element.features.features[j])
+                console.log("END PATH")
                 element.paintfeature(saveDataPath.context(), element.features.features[j])
+                d3.debug = false
+                break
             }
             element.postpaint(saveDataPath.context())
         }
@@ -276,6 +303,8 @@ var ZoomableCanvasMap;
         function click() {
             var point = translatePoint(d3.mouse(this))
 
+            console.log("CLICK")
+
             for (var i in settings.data) {
                 var element = settings.data[i]
                 if (!element.click)
@@ -294,8 +323,6 @@ var ZoomableCanvasMap;
             var point = translatePoint(d3.mouse(this)),
                 repaint = false
 
-            console.log("HOVER")
-
             for (var i in settings.data) {
                 var element = settings.data[i]
                 var lookup = element.lookupTree.search([point[0], point[1], point[0], point[1]])
@@ -305,14 +332,12 @@ var ZoomableCanvasMap;
                     isInside = false
                     if (inside(settings.projection.invert(point), feature)) {
                         isInside = true
-                        console.log(feature)
                         if (element.hoverElement == feature) // FIXME is this mutability hack a good thang?
                             continue
                         element.hoverElement = feature
                         repaint = true
                     }
                     isInside || !element.hoverElement || (element.hoverElement = false, repaint = true)
-                    console.log(element.hoverElement)
                 }
             }
             repaint && paint()
