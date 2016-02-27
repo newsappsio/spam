@@ -92,6 +92,25 @@ var ZoomableCanvasMap;
         element.postpaint(parameters)
     }
 
+    function PartialPainter(data, parameters) {
+        var index = 0
+        this.hasNext = function() {
+            return index < data.length
+        }
+        this.renderNext = function() {
+            if (index >= data.length)
+                return
+            paintBackgroundElement(data[index], parameters)
+        }
+        this.finish = function() {
+            if (index >= data.length)
+                return
+            for (; index != data.length; ++index) {
+                paintBackgroundElement(data[index], parameters)
+            }
+        }
+    }
+
     function CanvasMap(parameters) {
         var settings = jQuery.extend({
                 height: 200,
@@ -192,11 +211,20 @@ var ZoomableCanvasMap;
             settings.backgroundScale = settings.scale
             settings.backgroundTranslate = settings.translate
             var callback = function() {
+                var parameters = {
+                    path: dataPath,
+                    context: context,
+                    scale: settings.scale,
+                    translate: settings.translate,
+                    width: settings.width,
+                    height: settings.height,
+                    map: settings.map
+                }
                 for (var i in settings.data) {
                     var element = settings.data[i]
 
                     if (element.dynamicpaint)
-                        element.dynamicpaint(context, dataPath, null)
+                        element.dynamicpaint(parameters, null)
                 }
 
                 context.restore()
@@ -412,6 +440,7 @@ var ZoomableCanvasMap;
                     Math.min(settings.width / dx, settings.height / dy),
                 translate = [-bx + settings.width / scale / 2,
                              -by + settings.height / scale / 2]
+            area = 1 / settings.projection.scale() / scale / settings.ratio
 
             var background = new Image()
 
@@ -428,7 +457,7 @@ var ZoomableCanvasMap;
                 height: settings.height,
                 map: settings.map
             }
-            var index = 0
+            var partialPainter = new PartialPainter(settings.data, parameters)
             // FIXME when zooming we sometimes have missing parts of the bg, fix that?
             // Prob add stuff to the bg? (Draw the image, then paint some polygon parts on the left)
             // Or have a bigger area painted on the pic?
@@ -448,22 +477,14 @@ var ZoomableCanvasMap;
                             otherOldTranslate[1] + (iT[1] - otherOldTranslate[1]) * scale / i(t)
                         ]
                         map.paint()
-                        if (index != settings.data.length) {
-                            var element = settings.data[index]
-                            paintBackgroundElement(element, parameters)
-                            ++index
-                        }
+                        partialPainter.renderNext()
                     }
                 })
                 .each("end", function() {
                     settings.scale = scale
                     settings.translate = translate
-                    area = 1 / settings.projection.scale() / settings.scale / settings.ratio
 
-                    for (; index != settings.data.length; ++index) {
-                        var element = settings.data[index]
-                        paintBackgroundElement(element, parameters)
-                    }
+                    partialPainter.finish()
                     console.log("SAVE BG")
 
                     background.onload = function() {
@@ -474,6 +495,7 @@ var ZoomableCanvasMap;
                         settings.backgroundTranslate = settings.translate
                         map.paint()
                     }
+                    // TODO there is a function to get the image data from the context, is that faster?
                     background.src = canvas.node().toDataURL()
                 })
         }
