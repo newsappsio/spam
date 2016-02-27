@@ -75,6 +75,12 @@ var ZoomableCanvasMap;
         }
     }
 
+    function paintFeature(element, feature, parameters) {
+        parameters.context.beginPath()
+        parameters.path(feature)
+        element.paintfeature(parameters, feature)
+    }
+
     function paintBackgroundElement(element, parameters) {
         element.prepaint(parameters)
         var lookup = element.lookupTree.search([
@@ -85,29 +91,74 @@ var ZoomableCanvasMap;
         ])
         for (var j in lookup) {
             var feature = lookup[j][4]
-            parameters.context.beginPath()
-            parameters.path(feature)
-            element.paintfeature(parameters, feature)
+            paintFeature(element, feature, parameters)
         }
         element.postpaint(parameters)
     }
 
     function PartialPainter(data, parameters) {
-        var index = 0
+        var index = -1,
+            j = 0,
+            element = null,
+            currentLookup = []
+
         this.hasNext = function() {
-            return index < data.length
+            return index < data.length || j < currentLookup.length
         }
         this.renderNext = function() {
-            if (index >= data.length)
+            if (index >= data.length && j >= currentLookup.length)
                 return
-            paintBackgroundElement(data[index], parameters)
+            var start = performance.now()
+            if (!element || j >= currentLookup.length) {
+                ++index
+                if (index == data.length)
+                    return
+                element = data[index]
+
+                element.prepaint(parameters)
+                currentLookup = element.lookupTree.search([
+                    - parameters.translate[0],
+                    - parameters.translate[1],
+                    parameters.width / parameters.scale - parameters.translate[0],
+                    parameters.height / parameters.scale - parameters.translate[1]
+                ])
+                j = 0
+            }
+            for (; j != currentLookup.length; ++j) {
+                var feature = currentLookup[j][4]
+                paintFeature(element, feature, parameters)
+                if ((performance.now() - start) > 10)
+                    break
+            }
+            if (j == currentLookup.length) {
+                element.postpaint(parameters)
+            }
         }
         this.finish = function() {
-            if (index >= data.length)
+            if (index >= data.length && j >= currentLookup.length)
                 return
-            for (; index != data.length; ++index) {
-                paintBackgroundElement(data[index], parameters)
+            for (; index >= data.length; ++index) {
+                if (j >= currentLookup.length) {
+                    element = data[index]
+                    console.log(element)
+
+                    element.prepaint(parameters)
+                    currentLookup = element.lookupTree.search([
+                        - parameters.translate[0],
+                        - parameters.translate[1],
+                        parameters.width / parameters.scale - parameters.translate[0],
+                        parameters.height / parameters.scale - parameters.translate[1]
+                    ])
+                    ++index
+                    j = 0
+                }
+                for (; j != currentLookup.length; ++j) {
+                    var feature = currentLookup[j][4]
+                    paintFeature(element, feature, parameters)
+                }
+                element.postpaint(parameters)
             }
+            index = -1
         }
     }
 
