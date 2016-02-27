@@ -84,8 +84,8 @@ var ZoomableCanvasMap;
     function paintBackgroundElement(element, parameters) {
         element.prepaint(parameters)
         var lookup = element.lookupTree.search([
-            - parameters.translate[0],
-            - parameters.translate[1],
+            parameters.translate[0],
+            parameters.translate[1],
             parameters.width / parameters.scale - parameters.translate[0],
             parameters.height / parameters.scale - parameters.translate[1]
         ])
@@ -97,22 +97,19 @@ var ZoomableCanvasMap;
     }
 
     function PartialPainter(data, parameters) {
-        var index = -1,
+        var index = 0,
             j = 0,
             element = null,
             currentLookup = []
 
         this.hasNext = function() {
-            return index < data.length || j < currentLookup.length
+            return index <= data.length && j < currentLookup.length
         }
         this.renderNext = function() {
             if (index >= data.length && j >= currentLookup.length)
                 return
             var start = performance.now()
             if (!element || j >= currentLookup.length) {
-                ++index
-                if (index == data.length)
-                    return
                 element = data[index]
 
                 element.prepaint(parameters)
@@ -122,7 +119,12 @@ var ZoomableCanvasMap;
                     parameters.width / parameters.scale - parameters.translate[0],
                     parameters.height / parameters.scale - parameters.translate[1]
                 ])
+                console.log(parameters.translate)
+                console.log([parameters.width / parameters.scale - parameters.translate[0],
+                parameters.height / parameters.scale - parameters.translate[1]])
+                console.log(currentLookup.length)
                 j = 0
+                ++index
             }
             for (; j != currentLookup.length; ++j) {
                 var feature = currentLookup[j][4]
@@ -137,10 +139,12 @@ var ZoomableCanvasMap;
         this.finish = function() {
             if (index >= data.length && j >= currentLookup.length)
                 return
-            for (; index >= data.length; ++index) {
+            for (; index != data.length; ++index) {
+                console.log("Run index " + index)
+                console.log((index >= data.length && j >= currentLookup.length))
                 if (j >= currentLookup.length) {
+                    console.log("Data length " + data.length + " index " + index)
                     element = data[index]
-                    console.log(element)
 
                     element.prepaint(parameters)
                     currentLookup = element.lookupTree.search([
@@ -158,7 +162,7 @@ var ZoomableCanvasMap;
                 }
                 element.postpaint(parameters)
             }
-            index = -1
+            index = 0
         }
     }
 
@@ -498,7 +502,7 @@ var ZoomableCanvasMap;
             context.save()
             context.scale(scale * settings.ratio, scale * settings.ratio)
             context.translate(translate[0], translate[1])
-            context.clearRect(0, 0, settings.width, settings.height)
+            context.clearRect(translate[0], translate[1], settings.width * settings.ratio, settings.height * settings.ratio)
             var parameters = {
                 path: dataPath,
                 context: context,
@@ -508,6 +512,8 @@ var ZoomableCanvasMap;
                 height: settings.height,
                 map: settings.map
             }
+            console.log("Render for translate")
+            console.log(translate)
             var partialPainter = new PartialPainter(settings.data, parameters)
             // FIXME when zooming we sometimes have missing parts of the bg, fix that?
             // Prob add stuff to the bg? (Draw the image, then paint some polygon parts on the left)
