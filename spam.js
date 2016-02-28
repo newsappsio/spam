@@ -153,7 +153,6 @@ var ZoomableCanvasMap;
                         parameters.width / parameters.scale - parameters.translate[0],
                         parameters.height / parameters.scale - parameters.translate[1]
                     ])
-                    ++index
                     j = 0
                 }
                 for (; j != currentLookup.length; ++j) {
@@ -391,11 +390,15 @@ var ZoomableCanvasMap;
                     continue
 
                 var lookup = element.lookupTree.search([point[0], point[1], point[0], point[1]])
+                var isInside = false
                 for (var j in lookup) {
                     var feature = lookup[j][4]
-                    if (inside(settings.projection.invert(point), feature))
+                    if (inside(settings.projection.invert(point), feature)) {
                         element.click(settings.map, feature)
+                        isInside = true
+                    }
                 }
+                isInside || element.click(settings.map, null)
             }
         }
 
@@ -484,17 +487,7 @@ var ZoomableCanvasMap;
         this.paint = function() {
             map.paint()
         }
-        this.zoom = function(d) {
-            console.log("ZOOM")
-            var bounds = dataPath.bounds(d),
-                dx = bounds[1][0] - bounds[0][0],
-                dy = bounds[1][1] - bounds[0][1],
-                bx = (bounds[0][0] + bounds[1][0]) / 2,
-                by = (bounds[0][1] + bounds[1][1]) / 2,
-                scale = 0.1 * // TODO bring back zoomScaleFactor?
-                    Math.min(settings.width / dx, settings.height / dy),
-                translate = [-bx + settings.width / scale / 2,
-                             -by + settings.height / scale / 2]
+        function scaleZoom(scale, translate) {
             area = 1 / settings.projection.scale() / scale / settings.ratio
 
             var background = new Image()
@@ -555,6 +548,24 @@ var ZoomableCanvasMap;
                     // TODO there is a function to get the image data from the context, is that faster?
                     background.src = canvas.node().toDataURL()
                 })
+        }
+        this.zoom = function(d) {
+            if (!d) {
+                scaleZoom(1, [0, 0])
+                return
+            }
+            console.log("ZOOM")
+            var bounds = dataPath.bounds(d),
+                dx = bounds[1][0] - bounds[0][0],
+                dy = bounds[1][1] - bounds[0][1],
+                bx = (bounds[0][0] + bounds[1][0]) / 2,
+                by = (bounds[0][1] + bounds[1][1]) / 2,
+                scale = 0.1 * // TODO bring back zoomScaleFactor?
+                    Math.min(settings.width / dx, settings.height / dy),
+                translate = [-bx + settings.width / scale / 2,
+                             -by + settings.height / scale / 2]
+
+            scaleZoom(scale, translate)
         }
     }
 }()
