@@ -45,10 +45,14 @@
             // TODO lookup mit rtree
             d3.json("municipios.json", function(error, d) {
                 d3.json("roads.json", function(error, roads) {
+                    var start = performance.now()
                     topojson.presimplify(d)
                     topojson.presimplify(roads)
+                    var end = performance.now()
+                    console.log("Presimplify takes " + (end - start))
 
                     var clicked = []
+                    var creatingStart = performance.now()
                     var map = new ZoomableCanvasMap({
                         element: ".js-map",
                         data: [{
@@ -115,7 +119,11 @@
                             }
                         }]
                     })
+                    var initStart = performance.now()
                     map.init()
+                    var initEnd = performance.now()
+                    console.log("Creating takes " + (initStart - creatingStart))
+                    console.log("Init takes " + (initEnd - initStart))
                 })
             })
         </script>

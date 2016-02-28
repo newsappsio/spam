@@ -195,6 +195,7 @@ var ZoomableCanvasMap;
                     }
                 })
         } else {
+            var projectionStart = performance.now()
             var b = [[Number.MAX_VALUE, Number.MAX_VALUE],
                      [Number.MIN_VALUE, Number.MIN_VALUE]]
             for (var i in settings.data) {
@@ -223,6 +224,9 @@ var ZoomableCanvasMap;
             settings.height = Math.ceil(dy * settings.width / dx)
             settings.projection.scale(scale)
                 .translate([settings.width / 2, settings.height / 2])
+
+            var projectionEnd = performance.now()
+            console.log("Projection takes " + (projectionEnd - projectionStart))
         }
         $(this).height(settings.height)
 
@@ -479,6 +483,7 @@ var ZoomableCanvasMap;
             canvas.attr("height", settings.height * settings.ratio)
             canvas.style("width", settings.width + "px")
             canvas.style("height", settings.height + "px")
+            canvas.style("display", "none")
             context.lineJoin = "round"
             context.lineCap = "round"
 
@@ -490,11 +495,13 @@ var ZoomableCanvasMap;
         function scaleZoom(scale, translate) {
             area = 1 / settings.projection.scale() / scale / settings.ratio
 
+            // TODO picture cache and use the cached image to zoom out
             var background = new Image()
 
             context.save()
             context.scale(scale * settings.ratio, scale * settings.ratio)
             context.translate(translate[0], translate[1])
+            console.log(translate)
             context.clearRect(translate[0], translate[1], settings.width * settings.ratio, settings.height * settings.ratio)
             var parameters = {
                 path: dataPath,
