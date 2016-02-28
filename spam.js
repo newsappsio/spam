@@ -449,6 +449,29 @@ var ZoomableCanvasMap;
         }
     }
 
+    var epsilon = 0.0001
+    function nearEqual(a, b) {
+        return Math.abs(a - b) < epsilon
+    }
+
+    function ImageCache() {
+        var cache = []
+        this.addImage = function(parameters) {
+            cache.push(parameters)
+        }
+
+        this.getImage = function(parameters) {
+            for (var i in cache) {
+                var element = cache[i]
+                if (nearEqual(element.scale, parameters.scale) &&
+                    nearEqual(element.translate[0], parameters.translate[0]) &&
+                    nearEqual(element.translate[1], parameters.translate[1]))
+                    return element
+            }
+            return null
+        }
+    }
+
     ZoomableCanvasMap = function(parameters) {
         // TODO define api for zoom polygons?
         // handle clicks, zoom into polygon
@@ -467,7 +490,8 @@ var ZoomableCanvasMap;
                 stream: function(s) {
                     return simplify.stream(settings.projection.stream(s))
                 }
-            })
+            }),
+            imageCache = new ImageCache()
 
         settings.map = this
 
@@ -493,15 +517,14 @@ var ZoomableCanvasMap;
             map.paint()
         }
         function scaleZoom(scale, translate) {
+            console.log("Scale zoom")
+            console.log(scale)
+            console.log(translate)
             area = 1 / settings.projection.scale() / scale / settings.ratio
-
-            // TODO picture cache and use the cached image to zoom out
-            var background = new Image()
 
             context.save()
             context.scale(scale * settings.ratio, scale * settings.ratio)
             context.translate(translate[0], translate[1])
-            console.log(translate)
             context.clearRect(translate[0], translate[1], settings.width * settings.ratio, settings.height * settings.ratio)
             var parameters = {
                 path: dataPath,
@@ -512,9 +535,21 @@ var ZoomableCanvasMap;
                 height: settings.height,
                 map: settings.map
             }
-            console.log("Render for translate")
-            console.log(translate)
-            var partialPainter = new PartialPainter(settings.data, parameters)
+
+            var image = imageCache.getImage({
+                scale: scale,
+                translate: translate
+            })
+            console.log("Got cached image")
+            console.log(image)
+            if (!image) {
+                console.log("No image, reset background")
+                var background = new Image()
+                var partialPainter = new PartialPainter(settings.data, parameters)
+            } else {
+                var background = image.image
+            }
+            console.log(background)
             // FIXME when zooming we sometimes have missing parts of the bg, fix that?
             // Prob add stuff to the bg? (Draw the image, then paint some polygon parts on the left)
             // Or have a bigger area painted on the pic?
@@ -534,26 +569,41 @@ var ZoomableCanvasMap;
                             otherOldTranslate[1] + (iT[1] - otherOldTranslate[1]) * scale / i(t)
                         ]
                         map.paint()
-                        partialPainter.renderNext()
+                        if (!image)
+                            partialPainter.renderNext()
                     }
                 })
                 .each("end", function() {
                     settings.scale = scale
                     settings.translate = translate
 
-                    partialPainter.finish()
-                    console.log("SAVE BG")
 
-                    background.onload = function() {
-                        console.log("PAINT")
+                    console.log(background)
+
+                    if (!image) {
+                        partialPainter.finish()
+                        background.onload = function() {
+                            context.restore()
+                            console.log("PAINT")
+                            imageCache.addImage({
+                                image: background,
+                                scale: scale,
+                                translate: translate
+                            })
+                            settings.background = background
+                            settings.backgroundScale = settings.scale
+                            settings.backgroundTranslate = settings.translate
+                            map.paint()
+                        }
+                        // TODO there is a function to get the image data from the context, is that faster?
+                        background.src = canvas.node().toDataURL()
+                    } else {
                         context.restore()
                         settings.background = background
                         settings.backgroundScale = settings.scale
                         settings.backgroundTranslate = settings.translate
                         map.paint()
                     }
-                    // TODO there is a function to get the image data from the context, is that faster?
-                    background.src = canvas.node().toDataURL()
                 })
         }
         this.zoom = function(d) {
