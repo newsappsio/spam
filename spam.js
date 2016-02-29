@@ -62,10 +62,11 @@ var ZoomableCanvasMap;
 
     function createRTree(element, dataPath) {
         element.lookupTree = rbush(4)
+
+        var elements = []
         for (var j in element.features.features) {
             var bounds = dataPath.bounds(element.features.features[j])
-            // FIXME does bulk insert work faster?
-            element.lookupTree.insert([
+            elements.push([
                 bounds[0][0].toFixed(0),
                 bounds[0][1].toFixed(0),
                 bounds[1][0].toFixed(0),
@@ -73,6 +74,7 @@ var ZoomableCanvasMap;
                 element.features.features[j]
             ])
         }
+        element.lookupTree.insert(elements)
     }
 
     function paintFeature(element, feature, parameters) {
@@ -119,10 +121,6 @@ var ZoomableCanvasMap;
                     parameters.width / parameters.scale - parameters.translate[0],
                     parameters.height / parameters.scale - parameters.translate[1]
                 ])
-                console.log(parameters.translate)
-                console.log([parameters.width / parameters.scale - parameters.translate[0],
-                parameters.height / parameters.scale - parameters.translate[1]])
-                console.log(currentLookup.length)
                 j = 0
                 ++index
             }
@@ -140,10 +138,7 @@ var ZoomableCanvasMap;
             if (index >= data.length && j >= currentLookup.length)
                 return
             for (; index != data.length; ++index) {
-                console.log("Run index " + index)
-                console.log((index >= data.length && j >= currentLookup.length))
                 if (j >= currentLookup.length) {
-                    console.log("Data length " + data.length + " index " + index)
                     element = data[index]
 
                     element.prepaint(parameters)
@@ -261,9 +256,12 @@ var ZoomableCanvasMap;
             context.scale(settings.ratio, settings.ratio)
 
             // TODO move rtree part out?
+            var rtreeStart = performance.now()
             for (var i in settings.data) {
                 createRTree(settings.data[i], dataPath)
             }
+            var rtreeEnd = performance.now()
+            console.log("Rtree building takes " + (rtreeEnd - rtreeStart))
 
             settings.background = new Image()
             settings.backgroundScale = settings.scale
@@ -549,6 +547,7 @@ var ZoomableCanvasMap;
             // FIXME when zooming we sometimes have missing parts of the bg, fix that?
             // Prob add stuff to the bg? (Draw the image, then paint some polygon parts on the left)
             // Or have a bigger area painted on the pic?
+            // Probably get the closed pic to the needed scale + translate that fits? (e.g. 1/[0, 0] sometimes?)
             d3.transition()
                 .duration(300)
                 .ease("linear")
@@ -602,7 +601,6 @@ var ZoomableCanvasMap;
                 scaleZoom(1, [0, 0])
                 return
             }
-            console.log("ZOOM")
             var bounds = dataPath.bounds(d),
                 dx = bounds[1][0] - bounds[0][0],
                 dy = bounds[1][1] - bounds[0][1],
