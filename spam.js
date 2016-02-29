@@ -452,8 +452,9 @@ var ZoomableCanvasMap;
         return Math.abs(a - b) < epsilon
     }
 
-    function ImageCache() {
-        var cache = []
+    function ImageCache(parameters) {
+        var cache = [],
+            settings = parameters
         this.addImage = function(parameters) {
             cache.push(parameters)
         }
@@ -467,6 +468,30 @@ var ZoomableCanvasMap;
                     return element
             }
             return null
+        }
+
+        this.getFittingImage = function(bbox) {
+            console.log("getFittingImage")
+            console.log(bbox)
+            var currentImage = null
+            for (var i in cache) {
+                var image = cache[i]
+                var imageBB = [
+                    - image.translate[0],
+                    - image.translate[1],
+                    settings.width / image.scale - image.translate[0],
+                    settings.height / image.scale - image.translate[1]
+                ]
+                if (imageBB[0] <= bbox[0] &&
+                    imageBB[1] <= bbox[1] &&
+                    imageBB[2] >= bbox[2] &&
+                    imageBB[3] >= bbox[3] &&
+                    (!currentImage || currentImage.scale > image.scale)) {
+                    currentImage = image
+                }
+            }
+            console.log(currentImage)
+            return currentImage
         }
     }
 
@@ -489,7 +514,10 @@ var ZoomableCanvasMap;
                     return simplify.stream(settings.projection.stream(s))
                 }
             }),
-            imageCache = new ImageCache()
+            imageCache = new ImageCache({
+                width: settings.width,
+                height: settings.height
+            })
 
         settings.map = this
 
@@ -552,6 +580,21 @@ var ZoomableCanvasMap;
             } else {
                 var background = image.image
             }
+            var bbox = [
+                Math.min(- translate[0], - settings.translate[0]),
+                Math.min(- translate[1], - settings.translate[1]),
+                Math.max(settings.width / scale - translate[0],
+                         settings.width / settings.scale - settings.translate[0]),
+                Math.max(settings.height / scale - translate[1],
+                         settings.height / settings.scale - settings.translate[1])
+            ]
+            var zoomImage = imageCache.getFittingImage(bbox)
+            if (zoomImage) {
+                settings.background = zoomImage.image
+                settings.backgroundScale = zoomImage.scale
+                settings.backgroundTranslate = zoomImage.translate
+            }
+            // TODO set the transition background!
             // FIXME when zooming we sometimes have missing parts of the bg, fix that?
             // Prob add stuff to the bg? (Draw the image, then paint some polygon parts on the left)
             // Or have a bigger area painted on the pic?
