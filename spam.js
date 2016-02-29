@@ -540,20 +540,15 @@ var ZoomableCanvasMap;
                 scale: scale,
                 translate: translate
             })
-            console.log("Got cached image")
-            console.log(image)
             if (!image) {
-                console.log("No image, reset background")
                 var background = new Image()
                 var partialPainter = new PartialPainter(settings.data, parameters)
             } else {
                 var background = image.image
             }
-            console.log(background)
             // FIXME when zooming we sometimes have missing parts of the bg, fix that?
             // Prob add stuff to the bg? (Draw the image, then paint some polygon parts on the left)
             // Or have a bigger area painted on the pic?
-            // TODO check why painting takes so long, make it faster by painting parts in the transition steps?
             d3.transition()
                 .duration(300)
                 .ease("linear")
@@ -577,14 +572,10 @@ var ZoomableCanvasMap;
                     settings.scale = scale
                     settings.translate = translate
 
-
-                    console.log(background)
-
                     if (!image) {
                         partialPainter.finish()
                         background.onload = function() {
                             context.restore()
-                            console.log("PAINT")
                             imageCache.addImage({
                                 image: background,
                                 scale: scale,
