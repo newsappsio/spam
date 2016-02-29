@@ -135,8 +135,14 @@ var ZoomableCanvasMap;
             }
         }
         this.finish = function() {
+            console.log("Finish painting: index " + index + ", j " + j)
+            console.log(data.length)
+            console.log(currentLookup.length)
             if (index >= data.length && j >= currentLookup.length)
                 return
+            console.log("continue painting")
+            if (j < currentLookup.length)
+                index--
             for (; index != data.length; ++index) {
                 if (j >= currentLookup.length) {
                     element = data[index]
@@ -156,6 +162,7 @@ var ZoomableCanvasMap;
                 }
                 element.postpaint(parameters)
             }
+            console.log("Finish painting")
             index = 0
         }
     }
