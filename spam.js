@@ -515,9 +515,17 @@ var ZoomableCanvasMap;
             map.paint()
         }
         function scaleZoom(scale, translate) {
-            console.log("Scale zoom")
-            console.log(scale)
-            console.log(translate)
+            if (nearEqual(scale, settings.scale) &&
+                nearEqual(translate[0], settings.translate[0]) &&
+                nearEqual(translate[1], settings.translate[1])) {
+                scale = 1
+                translate = [0, 0]
+            }
+            if (scale == 1 && settings.scale == 1 &&
+                !translate[0] && !translate[1] &&
+                !settings.translate[0] && !settings.translate[1]) {
+                return
+            }
             area = 1 / settings.projection.scale() / scale / settings.ratio
 
             context.save()
