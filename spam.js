@@ -447,7 +447,7 @@ var ZoomableCanvasMap;
         }
     }
 
-    var epsilon = 0.0001
+    var epsilon = 0.2
     function nearEqual(a, b) {
         return Math.abs(a - b) < epsilon
     }
@@ -520,6 +520,7 @@ var ZoomableCanvasMap;
             })
 
         settings.map = this
+        settings.zoomScaleFactor = settings.zoomScaleFactor || 0.5
 
         this.init = function() {
             map.init()
@@ -543,9 +544,14 @@ var ZoomableCanvasMap;
             map.paint()
         }
         function scaleZoom(scale, translate) {
+            console.log(translate)
+            console.log(settings.translate)
+            console.log(scale)
+            console.log(settings.scale)
             if (nearEqual(scale, settings.scale) &&
                 nearEqual(translate[0], settings.translate[0]) &&
                 nearEqual(translate[1], settings.translate[1])) {
+                console.log("Zoom out again!")
                 scale = 1
                 translate = [0, 0]
             }
@@ -657,7 +663,7 @@ var ZoomableCanvasMap;
                 dy = bounds[1][1] - bounds[0][1],
                 bx = (bounds[0][0] + bounds[1][0]) / 2,
                 by = (bounds[0][1] + bounds[1][1]) / 2,
-                scale = 0.1 * // TODO bring back zoomScaleFactor?
+                scale = settings.zoomScaleFactor *
                     Math.min(settings.width / dx, settings.height / dy),
                 translate = [-bx + settings.width / scale / 2,
                              -by + settings.height / scale / 2]

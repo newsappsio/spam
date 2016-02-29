@@ -55,6 +55,7 @@
                     var creatingStart = performance.now()
                     var map = new ZoomableCanvasMap({
                         element: ".js-map",
+                        zoomScaleFactor: 0.1,
                         data: [{
                             features: topojson.feature(d, d.objects["municipios"]),
                             prepaint: function(parameters) {
