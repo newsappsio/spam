@@ -62,8 +62,8 @@ var ZoomableCanvasMap;
 
     function createRTree(element, dataPath) {
         element.lookupTree = rbush(4)
-
         var elements = []
+
         for (var j in element.features.features) {
             var bounds = dataPath.bounds(element.features.features[j])
             elements.push([
@@ -74,7 +74,7 @@ var ZoomableCanvasMap;
                 element.features.features[j]
             ])
         }
-        element.lookupTree.insert(elements)
+        element.lookupTree.load(elements)
     }
 
     function paintFeature(element, feature, parameters) {
