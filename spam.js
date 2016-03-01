@@ -546,6 +546,12 @@ var ZoomableCanvasMap;
             context.lineCap = "round"
 
             dataPath.context(context)
+
+            imageCache.addImage({
+                image: settings.background,
+                scale: settings.scale,
+                translate: settings.translate
+            })
         }
         this.paint = function() {
             map.paint()
