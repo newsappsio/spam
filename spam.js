@@ -135,12 +135,8 @@ var ZoomableCanvasMap;
             }
         }
         this.finish = function() {
-            console.log("Finish painting: index " + index + ", j " + j)
-            console.log(data.length)
-            console.log(currentLookup.length)
             if (index >= data.length && j >= currentLookup.length)
                 return
-            console.log("continue painting")
             if (j < currentLookup.length)
                 index--
             for (; index != data.length; ++index) {
@@ -162,7 +158,6 @@ var ZoomableCanvasMap;
                 }
                 element.postpaint(parameters)
             }
-            console.log("Finish painting")
             index = 0
         }
     }
@@ -478,8 +473,6 @@ var ZoomableCanvasMap;
         }
 
         this.getFittingImage = function(bbox) {
-            console.log("getFittingImage")
-            console.log(bbox)
             var currentImage = null
             for (var i in cache) {
                 var image = cache[i]
@@ -497,7 +490,6 @@ var ZoomableCanvasMap;
                     currentImage = image
                 }
             }
-            console.log(currentImage)
             return currentImage
         }
     }
@@ -557,14 +549,9 @@ var ZoomableCanvasMap;
             map.paint()
         }
         function scaleZoom(scale, translate) {
-            console.log(translate)
-            console.log(settings.translate)
-            console.log(scale)
-            console.log(settings.scale)
             if (nearEqual(scale, settings.scale) &&
                 nearEqual(translate[0], settings.translate[0]) &&
                 nearEqual(translate[1], settings.translate[1])) {
-                console.log("Zoom out again!")
                 scale = 1
                 translate = [0, 0]
             }
