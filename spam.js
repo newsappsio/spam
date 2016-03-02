@@ -463,11 +463,12 @@ var ZoomableCanvasMap;
                     settings.width / image.scale - image.translate[0],
                     settings.height / image.scale - image.translate[1]
                 ]
+                console.log(image)
                 if (imageBB[0] <= bbox[0] &&
                     imageBB[1] <= bbox[1] &&
                     imageBB[2] >= bbox[2] &&
                     imageBB[3] >= bbox[3] &&
-                    (!currentImage || currentImage.scale > image.scale)) {
+                    (!currentImage || currentImage.scale < image.scale)) {
                     currentImage = image
                 }
             }
@@ -543,7 +544,6 @@ var ZoomableCanvasMap;
             context.save()
             context.scale(scale * settings.ratio, scale * settings.ratio)
             context.translate(translate[0], translate[1])
-            console.log(translate)
             context.clearRect(- translate[0], - translate[1], settings.width * settings.ratio, settings.height * settings.ratio)
             var parameters = {
                 path: dataPath,
@@ -559,12 +559,13 @@ var ZoomableCanvasMap;
                 scale: scale,
                 translate: translate
             })
-            if (!image) {
+            if (image) {
+                var background = image.image
+            } else {
                 var background = new Image()
                 var partialPainter = new PartialPainter(settings.data, parameters)
-            } else {
-                var background = image.image
             }
+
             var bbox = [
                 Math.min(- translate[0], - settings.translate[0]),
                 Math.min(- translate[1], - settings.translate[1]),
@@ -594,8 +595,10 @@ var ZoomableCanvasMap;
                     area = 1 / scale / settings.projection.scale() / 4
                     return function(t) {
                         settings.scale = i(t)
+                        // TODO simplify this, probably we don't need to interplate the translate, but just use the scale to calculate everything?
                         var iT = interpolatedTranslate(t)
-                        settings.translate = [otherOldTranslate[0] + (iT[0] - otherOldTranslate[0]) * scale / i(t),
+                        settings.translate = [
+                            otherOldTranslate[0] + (iT[0] - otherOldTranslate[0]) * scale / i(t),
                             otherOldTranslate[1] + (iT[1] - otherOldTranslate[1]) * scale / i(t)
                         ]
                         map.paint()
@@ -607,7 +610,13 @@ var ZoomableCanvasMap;
                     settings.scale = scale
                     settings.translate = translate
 
-                    if (!image) {
+                    if (image) {
+                           context.restore()
+                           settings.background = background
+                           settings.backgroundScale = settings.scale
+                           settings.backgroundTranslate = settings.translate
+                           map.paint()
+                    } else {
                         partialPainter.finish()
                         background.onload = function() {
                             context.restore()
@@ -623,12 +632,6 @@ var ZoomableCanvasMap;
                         }
                         // TODO there is a function to get the image data from the context, is that faster?
                         background.src = canvas.node().toDataURL()
-                    } else {
-                        context.restore()
-                        settings.background = background
-                        settings.backgroundScale = settings.scale
-                        settings.backgroundTranslate = settings.translate
-                        map.paint()
                     }
                 })
         }
