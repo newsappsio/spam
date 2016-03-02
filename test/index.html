@@ -13,36 +13,7 @@
         <script src="rbush.js"></script>
         <script src="../spam.js"></script>
         <script type='text/javascript'>
-            // Ideas: list of polygons/features, have some prepaintCallback(context)? To set color and all?
-            // hoverCallback, for all?
-            // TODO: Hover mesh? (Mit paint callback? + hover callback?)
-            /*
-            we need some sort of base topojson element with the polygons mmh
-            [{
-                topojson: topojson,
-                prepaint: function(context) {
-
-                },
-                prefeature: function(context, d) {
-
-                },
-                hover: function(d) { // TODO: Needs to get reworked, mouseover, mouseout or sth like that?
-
-                },
-                click: function(d) {
-
-                }
-            }
-            ]
-            // TODO: Then already paint in picture, partial paint?
-            // TODO: Different abstraction levels of classes? (=> rather not)
-            // TODO: One base class with just a paint() method? Which generates boilerplate canvas stuffe t
-            // TODO: Zoomable map?
-            // TODO: hoverin, hoverout, paint in base class? Layer definition nur für bg image?
-            */
-
             // TODO queue.js
-            // TODO lookup mit rtree
             d3.json("map.json", function(error, d) {
                 d3.json("roads.json", function(error, roads) {
                     topojson.presimplify(d)
@@ -66,15 +37,7 @@
                             postpaint: function(parameters) {
 
                             },
-                            // TODO replace path with map?
-                            dynamicpaint: function(parameters, hover) { // TODO Is this path good?
-                                /*for (var i in clicked) {
-                                    var element = clicked[i]
-                                    context.beginPath()
-                                    context.fillStyle = "yellow"
-                                    path(element)
-                                    context.fill()
-                                }*/
+                            dynamicpaint: function(parameters, hover) {
                                 if (!hover)
                                     return
                                 var mesh = topojson.mesh(d,
@@ -91,12 +54,7 @@
                                     parameters.context.stroke()
                                 }
                             },
-                            click: function(map, d) { // TODO
-                                /*console.log("CLICKED")
-                                console.log(d)
-                                console.log(map)
-                                clicked.push(d)
-                                map.paint()*/
+                            click: function(map, d) { // TODO replace map with parameters?
                                 map.zoom(d)
                             }
                         },
