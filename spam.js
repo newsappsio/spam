@@ -227,8 +227,6 @@ var ZoomableCanvasMap;
         }
         $(this).height(settings.height)
 
-        // TODO make this code more playful
-
         function init() {
             canvas = d3.select(settings.element)
                 .append("canvas")
@@ -268,16 +266,16 @@ var ZoomableCanvasMap;
             settings.background = new Image()
             settings.backgroundScale = settings.scale
             settings.backgroundTranslate = settings.translate
+            var parameters = {
+                path: dataPath,
+                context: context,
+                scale: settings.scale,
+                translate: settings.translate,
+                width: settings.width,
+                height: settings.height,
+                map: settings.map
+            }
             var callback = function() {
-                var parameters = {
-                    path: dataPath,
-                    context: context,
-                    scale: settings.scale,
-                    translate: settings.translate,
-                    width: settings.width,
-                    height: settings.height,
-                    map: settings.map
-                }
                 for (var i in settings.data) {
                     var element = settings.data[i]
 
@@ -287,37 +285,18 @@ var ZoomableCanvasMap;
 
                 context.restore()
             }
-            saveBackground(canvas, dataPath, settings.background, callback)
-            context.restore()
+            for (var i in settings.data) {
+                var element = settings.data[i]
+                paintBackgroundElement(element, parameters)
+            }
+            settings.background.onload = callback
+            settings.background.src = canvas.node().toDataURL()
 
             //Prevent another call to the init method
             this.init = function() {}
         }
 
-        // TODO later when saving while zooming
-        // We need a duplicated datapath with a different area to do the painting, as well as a different canvas
-        // This should be created in another class
-        // Then we can use the paintElement class, to paint stuff at each zoom step :)
-        // With the hope that it will be sorta smooth
-        // need to test on mobile as well
-
-        function saveBackground(saveCanvas, saveDataPath, background, callback) {
-            var parameters = {
-                path: saveDataPath,
-                context: saveDataPath.context(),
-                scale: settings.scale,
-                translate: settings.translate,
-                width: settings.width,
-                height: settings.height,
-                map: settings.map
-            }
-            for (var i in settings.data) {
-                var element = settings.data[i]
-                paintBackgroundElement(element, parameters)
-            }
-            background.onload = callback
-            background.src = saveCanvas.node().toDataURL()
-        }
+        // TODO probably try to use the same data path in the zoom class, but have a different area settable?
 
         function paint() {
             context.save()
@@ -367,6 +346,8 @@ var ZoomableCanvasMap;
                 context: dataPath.context(),
                 scale: settings.scale,
                 translate: settings.translate,
+                width: settings.width,
+                height: settings.height,
                 map: settings.map
             }
             settings.area = 1 / settings.projection.scale() / settings.scale / settings.ratio
@@ -380,7 +361,8 @@ var ZoomableCanvasMap;
         }
 
         function translatePoint(point) {
-            return [point[0] / settings.scale - settings.translate[0],
+            return [
+                point[0] / settings.scale - settings.translate[0],
                 point[1] / settings.scale - settings.translate[1]
             ]
         }
@@ -435,7 +417,6 @@ var ZoomableCanvasMap;
         this.settings = function() {
             return settings
         }
-        this.saveBackground = saveBackground
     }
 
     StaticCanvasMap = function(parameters) {
@@ -495,9 +476,6 @@ var ZoomableCanvasMap;
     }
 
     ZoomableCanvasMap = function(parameters) {
-        // TODO define api for zoom polygons?
-        // handle clicks, zoom into polygon
-        // FIXME how to handle zoom outs?
         var map = new CanvasMap(parameters),
             simplify = d3.geo.transform({
                 point: function(x, y, z) {
@@ -565,7 +543,8 @@ var ZoomableCanvasMap;
             context.save()
             context.scale(scale * settings.ratio, scale * settings.ratio)
             context.translate(translate[0], translate[1])
-            context.clearRect(translate[0], translate[1], settings.width * settings.ratio, settings.height * settings.ratio)
+            console.log(translate)
+            context.clearRect(- translate[0], - translate[1], settings.width * settings.ratio, settings.height * settings.ratio)
             var parameters = {
                 path: dataPath,
                 context: context,

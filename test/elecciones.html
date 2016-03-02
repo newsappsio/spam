@@ -51,7 +51,6 @@
                     var end = performance.now()
                     console.log("Presimplify takes " + (end - start))
 
-                    var clicked = []
                     var creatingStart = performance.now()
                     var map = new ZoomableCanvasMap({
                         element: ".js-map",
@@ -97,11 +96,6 @@
                                 }
                             },
                             click: function(map, d) { // TODO
-                                /*console.log("CLICKED")
-                                console.log(d)
-                                console.log(map)
-                                clicked.push(d)
-                                map.paint()*/
                                 map.zoom(d)
                             }
                         },
