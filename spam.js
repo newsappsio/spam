@@ -454,7 +454,8 @@ var ZoomableCanvasMap;
         }
 
         this.getFittingImage = function(bbox) {
-            var currentImage = null
+            // Auto set scale=1, translate[0, 0] image as default return
+            var currentImage = cache.length > 0 ? cache[0] : null
             for (var i in cache) {
                 var image = cache[i]
                 var imageBB = [
@@ -574,33 +575,38 @@ var ZoomableCanvasMap;
                 Math.max(settings.height / scale - translate[1],
                          settings.height / settings.scale - settings.translate[1])
             ]
+            console.log(bbox)
             var zoomImage = imageCache.getFittingImage(bbox)
+            console.log(zoomImage)
             if (zoomImage) {
                 settings.background = zoomImage.image
                 settings.backgroundScale = zoomImage.scale
                 settings.backgroundTranslate = zoomImage.translate
             }
-            // TODO set the transition background!
-            // FIXME when zooming we sometimes have missing parts of the bg, fix that?
-            // Prob add stuff to the bg? (Draw the image, then paint some polygon parts on the left)
-            // Or have a bigger area painted on the pic?
-            // Probably get the closed pic to the needed scale + translate that fits? (e.g. 1/[0, 0] sometimes?)
             d3.transition()
                 .duration(300)
                 .ease("linear")
                 .tween("zoom", function() {
                     var i = d3.interpolateNumber(settings.scale, scale)
                     var interpolatedTranslate = d3.interpolateArray(settings.translate, translate)
-                    var otherOldTranslate = settings.translate
+                    var oldTranslate = settings.translate
+                    var oldScale = settings.scale
                     area = 1 / scale / settings.projection.scale() / 4
                     return function(t) {
                         settings.scale = i(t)
                         // TODO simplify this, probably we don't need to interplate the translate, but just use the scale to calculate everything?
                         var iT = interpolatedTranslate(t)
-                        settings.translate = [
-                            otherOldTranslate[0] + (iT[0] - otherOldTranslate[0]) * scale / i(t),
-                            otherOldTranslate[1] + (iT[1] - otherOldTranslate[1]) * scale / i(t)
+                        var newTranslate = [
+                            oldTranslate[0] + (translate[0] - oldTranslate[0]) / (scale - oldScale) * (i(t) - oldScale) * scale / i(t),
+                            oldTranslate[1] + (translate[1] - oldTranslate[1]) / (scale - oldScale) * (i(t) - oldScale) * scale / i(t),
                         ]
+                        /*settings.translate = [
+                            oldTranslate[0] + (iT[0] - oldTranslate[0]) * scale / i(t),
+                            oldTranslate[1] + (iT[1] - oldTranslate[1]) * scale / i(t)
+                        ]
+                        console.log(settings.translate)
+                        console.log(newTranslate)*/
+                        settings.translate = newTranslate
                         map.paint()
                         if (!image)
                             partialPainter.renderNext()
@@ -631,6 +637,7 @@ var ZoomableCanvasMap;
                             map.paint()
                         }
                         // TODO there is a function to get the image data from the context, is that faster?
+                        // TODO use getImageData/putImageData, because it's faster?
                         background.src = canvas.node().toDataURL()
                     }
                 })
