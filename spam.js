@@ -464,7 +464,6 @@ var ZoomableCanvasMap;
                     settings.width / image.scale - image.translate[0],
                     settings.height / image.scale - image.translate[1]
                 ]
-                console.log(image)
                 if (imageBB[0] <= bbox[0] &&
                     imageBB[1] <= bbox[1] &&
                     imageBB[2] >= bbox[2] &&
@@ -588,24 +587,15 @@ var ZoomableCanvasMap;
                 .ease("linear")
                 .tween("zoom", function() {
                     var i = d3.interpolateNumber(settings.scale, scale)
-                    var interpolatedTranslate = d3.interpolateArray(settings.translate, translate)
                     var oldTranslate = settings.translate
                     var oldScale = settings.scale
                     area = 1 / scale / settings.projection.scale() / 4
                     return function(t) {
                         settings.scale = i(t)
-                        // TODO simplify this, probably we don't need to interplate the translate, but just use the scale to calculate everything?
-                        var iT = interpolatedTranslate(t)
                         var newTranslate = [
                             oldTranslate[0] + (translate[0] - oldTranslate[0]) / (scale - oldScale) * (i(t) - oldScale) * scale / i(t),
                             oldTranslate[1] + (translate[1] - oldTranslate[1]) / (scale - oldScale) * (i(t) - oldScale) * scale / i(t),
                         ]
-                        /*settings.translate = [
-                            oldTranslate[0] + (iT[0] - oldTranslate[0]) * scale / i(t),
-                            oldTranslate[1] + (iT[1] - oldTranslate[1]) * scale / i(t)
-                        ]
-                        console.log(settings.translate)
-                        console.log(newTranslate)*/
                         settings.translate = newTranslate
                         map.paint()
                         if (!image)
