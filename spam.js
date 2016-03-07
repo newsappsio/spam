@@ -162,6 +162,14 @@ var ZoomableCanvasMap;
         }
     }
 
+
+    function translatePoint(point, scale, translate) {
+        return [
+            point[0] / scale - translate[0],
+            point[1] / scale - translate[1]
+        ]
+    }
+
     function CanvasMap(parameters) {
         var settings = jQuery.extend({
                 height: 200,
@@ -307,8 +315,12 @@ var ZoomableCanvasMap;
                     * settings.backgroundScale * settings.ratio,
                 (settings.backgroundTranslate[1] - settings.translate[1])
                     * settings.backgroundScale * settings.ratio],
-                translatedZero = translatePoint([0, 0]),
-                translatedMax = translatePoint([settings.width * settings.ratio, settings.height * settings.ratio])
+                translatedZero = translatePoint([0, 0], settings.scale, settings.translate),
+                translatedMax = translatePoint(
+                    [settings.width * settings.ratio, settings.height * settings.ratio],
+                    settings.scale,
+                    settings.translate
+                )
 
             context.clearRect(translatedZero[0], translatedZero[1],
                 translatedMax[0], translatedMax[1])
@@ -360,15 +372,8 @@ var ZoomableCanvasMap;
             context.restore()
         }
 
-        function translatePoint(point) {
-            return [
-                point[0] / settings.scale - settings.translate[0],
-                point[1] / settings.scale - settings.translate[1]
-            ]
-        }
-
         function click() {
-            var point = translatePoint(d3.mouse(this))
+            var point = translatePoint(d3.mouse(this), settings.scale, settings.translate)
 
             for (var i in settings.data) {
                 var element = settings.data[i]
@@ -389,7 +394,7 @@ var ZoomableCanvasMap;
         }
 
         function hover() {
-            var point = translatePoint(d3.mouse(this)),
+            var point = translatePoint(d3.mouse(this), settings.scale, settings.translate),
                 repaint = false
 
             for (var i in settings.data) {
@@ -398,7 +403,7 @@ var ZoomableCanvasMap;
                 for (var j in lookup) {
                     var feature = lookup[j][4]
                     if (inside(settings.projection.invert(point), feature)) {
-                        if (element.hoverElement == feature) // FIXME is this mutability hack a good thang?
+                        if (element.hoverElement == feature)
                             break
                         element.hoverElement = feature
                         repaint = true
@@ -438,6 +443,7 @@ var ZoomableCanvasMap;
     function ImageCache(parameters) {
         var cache = [],
             settings = parameters
+
         this.addImage = function(parameters) {
             cache.push(parameters)
         }
@@ -569,10 +575,10 @@ var ZoomableCanvasMap;
             var bbox = [
                 Math.min(- translate[0], - settings.translate[0]),
                 Math.min(- translate[1], - settings.translate[1]),
-                Math.max(settings.width / scale - translate[0],
-                         settings.width / settings.scale - settings.translate[0]),
-                Math.max(settings.height / scale - translate[1],
-                         settings.height / settings.scale - settings.translate[1])
+                Math.max(translatePoint(settings.width, scale, translate[0]),
+                         translatePoint(settings.width, settings.scale, settings.translate)),
+                Math.max(translatePoint(settings.height, scale, translate[1]),
+                         translatePoint(settings.height, settings.scale, settings.translate))
             ]
             console.log(bbox)
             var zoomImage = imageCache.getFittingImage(bbox)
@@ -647,7 +653,7 @@ var ZoomableCanvasMap;
                 translate = [-bx + settings.width / scale / 2,
                              -by + settings.height / scale / 2]
 
-            scaleZoom(scale, translate)
+            scaleZoom.call(this, scale, translate)
         }
     }
 }()
