@@ -572,13 +572,13 @@ var ZoomableCanvasMap;
                 var partialPainter = new PartialPainter(settings.data, parameters)
             }
 
+            var translatedOne = translatePoint([settings.width, settings.height], scale, translate),
+                translatedTwo = translatePoint([settings.width, settings.height], settings.scale, settings.translate)
             var bbox = [
                 Math.min(- translate[0], - settings.translate[0]),
                 Math.min(- translate[1], - settings.translate[1]),
-                Math.max(translatePoint(settings.width, scale, translate[0]),
-                         translatePoint(settings.width, settings.scale, settings.translate)),
-                Math.max(translatePoint(settings.height, scale, translate[1]),
-                         translatePoint(settings.height, settings.scale, settings.translate))
+                Math.max(translatedOne[0], translatedTwo[0]),
+                Math.max(translatedOne[1], translatedTwo[1])
             ]
             console.log(bbox)
             var zoomImage = imageCache.getFittingImage(bbox)
@@ -640,7 +640,7 @@ var ZoomableCanvasMap;
         }
         this.zoom = function(d) {
             if (!d) {
-                scaleZoom(1, [0, 0])
+                scaleZoom.call(this, 1, [0, 0])
                 return
             }
             var bounds = dataPath.bounds(d),
