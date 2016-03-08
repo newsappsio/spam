@@ -52,6 +52,7 @@
                     console.log("Presimplify takes " + (end - start))
 
                     var creatingStart = performance.now()
+                    var selected = null
                     var map = new ZoomableCanvasMap({
                         element: ".js-map",
                         zoomScaleFactor: 0.1,
@@ -79,24 +80,22 @@
                                     path(element)
                                     context.fill()
                                 }*/
-                                if (!hover)
-                                    return
-                                var mesh = topojson.mesh(d,
-                                    d.objects["municipios"],
-                                    function(a, b) {
-                                        return a !== b &&
-                                            (a.properties.name == hover.properties.name ||
-                                                b.properties.name == hover.properties.name)
-                                    })
-                                if (mesh) {
+                                if (hover) {
                                     parameters.context.beginPath()
                                     parameters.context.lineWidth = 1 / parameters.scale
                                     parameters.path(hover)
                                     parameters.context.stroke()
                                 }
+                                if (selected) {
+                                    parameters.context.beginPath()
+                                    parameters.context.lineWidth = 1 / parameters.scale
+                                    parameters.path(selected)
+                                    parameters.context.stroke()
+                                }
                             },
                             click: function(map, d) { // TODO
                                 map.zoom(d)
+                                selected = d
                             }
                         },
                         {
