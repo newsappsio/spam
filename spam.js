@@ -233,8 +233,7 @@ var ZoomableCanvasMap;
         d3.select(settings.parameters).attr("height", settings.height)
 
         if (!parameters.projection) {
-            var scale = 0.9 * (settings.width / dx)
-            settings.projection.scale(scale)
+            settings.projection.scale(0.9 * (settings.width / dx))
                 .translate([settings.width / 2, settings.height / 2])
         }
 
@@ -267,12 +266,9 @@ var ZoomableCanvasMap;
             context.scale(settings.ratio, settings.ratio)
 
             // TODO move rtree part out?
-            var rtreeStart = performance.now()
             for (var i in settings.data) {
                 createRTree(settings.data[i], dataPath)
             }
-            var rtreeEnd = performance.now()
-            console.log("Rtree building takes " + (rtreeEnd - rtreeStart))
 
             settings.background = new Image()
             settings.backgroundScale = settings.scale
