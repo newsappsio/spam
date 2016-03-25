@@ -251,7 +251,7 @@ var ZoomableCanvasMap;
                 context.oBackingStorePixelRatio ||
                 context.backingStorePixelRatio || 1
             settings.ratio = devicePixelRatio / backingStoreRatio
-            settings.area = 1 / settings.projection.scale() / settings.ratio
+            settings.area = 1 / settings.projection.scale() / settings.ratio / 20
 
             canvas.attr("width", settings.width * settings.ratio)
             canvas.attr("height", settings.height * settings.ratio)
@@ -361,7 +361,7 @@ var ZoomableCanvasMap;
                 height: settings.height,
                 map: settings.map
             }
-            settings.area = 1 / settings.projection.scale() / settings.scale / settings.ratio
+            settings.area = 1 / settings.projection.scale() / settings.scale / settings.ratio / 20
             for (var i in settings.data) {
                 var element = settings.data[i]
                 if (element.dynamicpaint)
@@ -443,7 +443,7 @@ var ZoomableCanvasMap;
         }
     }
 
-    var epsilon = 0.2
+    var epsilon = 0.5
     function nearEqual(a, b) {
         return Math.abs(a - b) < epsilon
     }
@@ -520,7 +520,7 @@ var ZoomableCanvasMap;
             canvas = d3.select(settings.element)
                 .append("canvas")
             context = canvas.node().getContext("2d")
-            area = 1 / settings.projection.scale() / settings.ratio
+            area = 1 / settings.projection.scale() / settings.ratio / 20
 
             canvas.attr("width", settings.width * settings.ratio)
             canvas.attr("height", settings.height * settings.ratio)
@@ -553,7 +553,7 @@ var ZoomableCanvasMap;
                 !settings.translate[0] && !settings.translate[1]) {
                 return
             }
-            area = 1 / settings.projection.scale() / scale / settings.ratio
+            area = 1 / settings.projection.scale() / scale / settings.ratio / 20
 
             context.save()
             context.scale(scale * settings.ratio, scale * settings.ratio)
@@ -601,7 +601,6 @@ var ZoomableCanvasMap;
                     var i = d3.interpolateNumber(settings.scale, scale)
                     var oldTranslate = settings.translate
                     var oldScale = settings.scale
-                    area = 1 / scale / settings.projection.scale() / 4
                     return function(t) {
                         settings.scale = i(t)
                         var newTranslate = [
