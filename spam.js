@@ -172,7 +172,6 @@ var ZoomableCanvasMap;
 
     function CanvasMap(parameters) {
         var settings = jQuery.extend({
-                height: 200,
                 width: $(parameters.element).innerWidth(),
                 ratio: 1,
                 area: 0,
@@ -193,14 +192,7 @@ var ZoomableCanvasMap;
             canvas = null,
             context = null
 
-        if (parameters.projection) {
-            var dataPath = d3.geo.path().projection({
-                    stream: function(s) {
-                        return simplify.stream(settings.projection.stream(s))
-                    }
-                })
-        } else {
-            var projectionStart = performance.now()
+        if (!parameters.projection) {
             var b = [[Number.MAX_VALUE, Number.MAX_VALUE],
                      [Number.MIN_VALUE, Number.MIN_VALUE]]
             for (var i in settings.data) {
@@ -210,30 +202,30 @@ var ZoomableCanvasMap;
             settings.projection = d3.geo.mercator()
                 .scale(1)
                 .center([(b[1][0] + b[0][0]) / 2, (b[1][1] + b[0][1]) / 2])
-            var dataPath = d3.geo.path().projection({
-                    stream: function(s) {
-                        return simplify.stream(settings.projection.stream(s))
-                    }
-                })
-            b = [[Number.MAX_VALUE, Number.MAX_VALUE],
-                 [Number.MIN_VALUE, Number.MIN_VALUE]]
-            for (var i in settings.data) {
-                featureBounds = dataPath.bounds(settings.data[i].features)
-                b = maxBounds(featureBounds, b)
+        }
+        var dataPath = d3.geo.path().projection({
+            stream: function(s) {
+                return simplify.stream(settings.projection.stream(s))
             }
+        })
+        var b = [[Number.MAX_VALUE, Number.MAX_VALUE],
+                 [Number.MIN_VALUE, Number.MIN_VALUE]]
+        for (var i in settings.data) {
+            var featureBounds = dataPath.bounds(settings.data[i].features)
+            b = maxBounds(featureBounds, b)
+        }
 
-            var dx = b[1][0] - b[0][0],
-                dy = b[1][1] - b[0][1],
-                scale = 0.9 * (settings.width / dx)
+        var dx = b[1][0] - b[0][0],
+            dy = b[1][1] - b[0][1]
 
-            settings.height = Math.ceil(dy * settings.width / dx)
+        settings.height = settings.height || Math.ceil(dy * settings.width / dx)
+        $(this).height(settings.height)
+
+        if (!parameters.projection) {
+            var scale = 0.9 * (settings.width / dx)
             settings.projection.scale(scale)
                 .translate([settings.width / 2, settings.height / 2])
-
-            var projectionEnd = performance.now()
-            console.log("Projection takes " + (projectionEnd - projectionStart))
         }
-        $(this).height(settings.height)
 
         function init() {
             canvas = d3.select(settings.element)
