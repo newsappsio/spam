@@ -172,7 +172,7 @@ var ZoomableCanvasMap;
 
     function extend(extension, obj) {
         var newObj = {}
-        // FIXME this is a bit hacky? Can't we just mutate the original obj?
+        // FIXME this is a bit hacky? Can't we just mutate the original obj? (can't bc projection)
         for (var elem in obj) {
             newObj[elem] = obj[elem]
         }
@@ -209,8 +209,7 @@ var ZoomableCanvasMap;
             var b = [[Number.MAX_VALUE, Number.MAX_VALUE],
                      [Number.MIN_VALUE, Number.MIN_VALUE]]
             for (var i in settings.data) {
-                var featureBounds = d3.geo.bounds(settings.data[i].features)
-                b = maxBounds(featureBounds, b)
+                b = maxBounds(b, d3.geo.bounds(settings.data[i].features))
             }
             settings.projection = d3.geo.mercator()
                 .scale(1)
@@ -224,8 +223,7 @@ var ZoomableCanvasMap;
         var b = [[Number.MAX_VALUE, Number.MAX_VALUE],
                  [Number.MIN_VALUE, Number.MIN_VALUE]]
         for (var i in settings.data) {
-            var featureBounds = dataPath.bounds(settings.data[i].features)
-            b = maxBounds(featureBounds, b)
+            b = maxBounds(b, dataPath.bounds(settings.data[i].features))
         }
 
         var dx = b[1][0] - b[0][0],
