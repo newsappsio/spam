@@ -579,9 +579,7 @@ var ZoomableCanvasMap;
                 Math.max(translatedOne[0], translatedTwo[0]),
                 Math.max(translatedOne[1], translatedTwo[1])
             ]
-            console.log(bbox)
             var zoomImage = imageCache.getFittingImage(bbox)
-            console.log(zoomImage)
             if (zoomImage) {
                 settings.background = zoomImage.image
                 settings.backgroundScale = zoomImage.scale
