@@ -170,9 +170,22 @@ var ZoomableCanvasMap;
         ]
     }
 
+    function extend(extension, obj) {
+        var newObj = {}
+        // FIXME this is a bit hacky? Can't we just mutate the original obj?
+        for (var elem in obj) {
+            newObj[elem] = obj[elem]
+        }
+        for (var elem in extension) {
+            if (!newObj.hasOwnProperty(elem))
+                newObj[elem] = extension[elem]
+        }
+        return newObj
+    }
+
     function CanvasMap(parameters) {
-        var settings = jQuery.extend({
-                width: $(parameters.element).innerWidth(),
+        var settings = extend({
+                width: d3.select(parameters.element).node().getBoundingClientRect().width,
                 ratio: 1,
                 area: 0,
                 scale: 1,
@@ -219,7 +232,7 @@ var ZoomableCanvasMap;
             dy = b[1][1] - b[0][1]
 
         settings.height = settings.height || Math.ceil(dy * settings.width / dx)
-        $(this).height(settings.height)
+        d3.select(settings.parameters).attr("height", settings.height)
 
         if (!parameters.projection) {
             var scale = 0.9 * (settings.width / dx)
