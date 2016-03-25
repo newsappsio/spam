@@ -374,6 +374,15 @@ var ZoomableCanvasMap;
         function click() {
             var point = translatePoint(d3.mouse(this), settings.scale, settings.translate)
 
+            var parameters = {
+                path: dataPath,
+                context: context,
+                scale: settings.scale,
+                translate: settings.translate,
+                width: settings.width,
+                height: settings.height,
+                map: settings.map
+            }
             for (var i in settings.data) {
                 var element = settings.data[i]
                 if (!element.click)
@@ -384,11 +393,11 @@ var ZoomableCanvasMap;
                 for (var j in lookup) {
                     var feature = lookup[j][4]
                     if (inside(settings.projection.invert(point), feature)) {
-                        element.click(settings.map, feature)
+                        element.click(parameters, feature)
                         isInside = true
                     }
                 }
-                isInside || element.click(settings.map, null)
+                isInside || element.click(parameters, null)
             }
         }
 
