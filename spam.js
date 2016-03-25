@@ -69,8 +69,8 @@ var ZoomableCanvasMap;
             elements.push([
                 bounds[0][0].toFixed(0),
                 bounds[0][1].toFixed(0),
-                bounds[1][0].toFixed(0),
-                bounds[1][1].toFixed(0),
+                Math.ceil(bounds[1][0]),
+                Math.ceil(bounds[1][1]),
                 element.features.features[j]
             ])
         }
