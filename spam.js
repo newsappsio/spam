@@ -242,6 +242,7 @@ var ZoomableCanvasMap;
                 .append("canvas")
                 .on("click", click)
                 .on("mousemove", hover)
+                .on("mouseleave", hoverLeave)
             context = canvas.node().getContext("2d")
 
             var devicePixelRatio = window.devicePixelRatio || 1,
@@ -313,8 +314,8 @@ var ZoomableCanvasMap;
             context.clearRect(- settings.translate[0], - settings.translate[1], settings.width * settings.ratio, settings.height * settings.ratio)
 
             context.rect(- settings.translate[0], - settings.translate[1],
-                settings.width / settings.scale - settings.translate[0],
-                settings.height / settings.scale - settings.translate[1])
+                settings.width / settings.scale,
+                settings.height / settings.scale)
             context.clip()
 
             context.drawImage(settings.background, 0, 0,
@@ -373,6 +374,14 @@ var ZoomableCanvasMap;
             }
         }
 
+        function hoverLeave() {
+            for (var i in settings.data) {
+                var element = settings.data[i]
+                element.hoverElement = false
+            }
+            paint()
+        }
+
         function hover() {
             var point = translatePoint(d3.mouse(this), settings.scale, settings.translate),
                 repaint = false
@@ -392,6 +401,10 @@ var ZoomableCanvasMap;
                         element.hoverElement = false
                         repaint = true
                     }
+                }
+                if (!lookup.length && element.hoverElement) {
+                    element.hoverElement = false
+                    repaint = true
                 }
             }
             repaint && paint()
