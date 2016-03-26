@@ -310,46 +310,13 @@ var ZoomableCanvasMap;
             context.scale(settings.scale * settings.ratio, settings.scale * settings.ratio)
             context.translate(settings.translate[0], settings.translate[1])
 
-            var imageTranslate = [(settings.backgroundTranslate[0] - settings.translate[0])
-                    * settings.backgroundScale * settings.ratio,
-                (settings.backgroundTranslate[1] - settings.translate[1])
-                    * settings.backgroundScale * settings.ratio],
-                translatedZero = translatePoint([0, 0], settings.scale, settings.translate),
-                translatedMax = translatePoint(
-                    [settings.width * settings.ratio, settings.height * settings.ratio],
-                    settings.scale,
-                    settings.translate
-                )
+            context.clearRect(- settings.translate[0], - settings.translate[1], settings.width * settings.ratio, settings.height * settings.ratio)
 
-            context.clearRect(translatedZero[0], translatedZero[1],
-                translatedMax[0], translatedMax[1])
-
-            /*console.log(settings.translate)
-            console.log("Image dimensions are " + settings.background.width + " x " + settings.background.height)
-            console.log("We are showing")*/
-            var imageWidth = Math.floor((translatedMax[0] - translatedZero[0]) * settings.backgroundScale * settings.ratio)
-            var imageHeight = Math.floor((translatedMax[1] - translatedZero[1]) * settings.backgroundScale * settings.ratio)
-            var widthFactor = 1
-            var heightFactor = 1
-
-            if (imageWidth > settings.width * settings.ratio) {
-                widthFactor = settings.width * settings.ratio / imageWidth
-                imageWidth = settings.width * settings.ratio
-            }
-
-            if (imageHeight > settings.height * settings.ratio) {
-                heightFactor = settings.height * settings.ratio / imageHeight
-                imageHeight = settings.height * settings.ratio
-            }
-
-            //console.log("X: " + imageTranslate[0] + " Y: " + (imageTranslate[1]) + " width: " + imageWidth + " height " + imageHeight)
-            context.drawImage(settings.background,
-                imageTranslate[0], imageTranslate[1],
-                imageWidth,
-                imageHeight,
-                translatedZero[0], translatedZero[1],
-                (translatedMax[0] - translatedZero[0]) * widthFactor,
-                (translatedMax[1] - translatedZero[1]) * heightFactor)
+            context.drawImage(settings.background, 0, 0,
+                settings.width * settings.ratio, settings.height * settings.ratio,
+                - settings.backgroundTranslate[0],
+                - settings.backgroundTranslate[1],
+                settings.width / settings.backgroundScale, settings.height / settings.backgroundScale)
 
             // FIXME this needs a way for the callback to use the lookupTree?
             var parameters = {
@@ -545,12 +512,14 @@ var ZoomableCanvasMap;
             if (nearEqual(scale, settings.scale) &&
                 nearEqual(translate[0], settings.translate[0]) &&
                 nearEqual(translate[1], settings.translate[1])) {
+                console.log("Near equal reset")
                 scale = 1
                 translate = [0, 0]
             }
             if (scale == 1 && settings.scale == 1 &&
                 !translate[0] && !translate[1] &&
                 !settings.translate[0] && !settings.translate[1]) {
+                    console.log("return")
                 return
             }
             area = 1 / settings.projection.scale() / scale / settings.ratio / 20
@@ -644,10 +613,13 @@ var ZoomableCanvasMap;
                 })
         }
         this.zoom = function(d) {
+            console.log("Zoom")
             if (!d) {
+                console.log("out")
                 scaleZoom.call(this, 1, [0, 0])
                 return
             }
+            console.log(d)
             var bounds = dataPath.bounds(d),
                 dx = bounds[1][0] - bounds[0][0],
                 dy = bounds[1][1] - bounds[0][1],
