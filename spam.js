@@ -312,6 +312,11 @@ var ZoomableCanvasMap;
 
             context.clearRect(- settings.translate[0], - settings.translate[1], settings.width * settings.ratio, settings.height * settings.ratio)
 
+            context.rect(- settings.translate[0], - settings.translate[1],
+                settings.width / settings.scale - settings.translate[0],
+                settings.height / settings.scale - settings.translate[1])
+            context.clip()
+
             context.drawImage(settings.background, 0, 0,
                 settings.width * settings.ratio, settings.height * settings.ratio,
                 - settings.backgroundTranslate[0],
