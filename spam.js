@@ -151,7 +151,8 @@ var ZoomableCanvasMap;
                 if (j >= currentLookup.length) {
                     element = data[index]
 
-                    element.prepaint(parameters)
+                    if (element.prepaint)
+                        element.prepaint(parameters)
                     currentLookup = element.lookupTree.search([
                         - parameters.translate[0],
                         - parameters.translate[1],
@@ -164,7 +165,8 @@ var ZoomableCanvasMap;
                     var feature = currentLookup[j][4]
                     paintFeature(element, feature, parameters)
                 }
-                element.postpaint(parameters)
+                if (element.postpaint)
+                    element.postpaint(parameters)
             }
             index = 0
         }
