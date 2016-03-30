@@ -540,7 +540,6 @@ var ZoomableCanvasMap;
             if (scale == 1 && settings.scale == 1 &&
                 !translate[0] && !translate[1] &&
                 !settings.translate[0] && !settings.translate[1]) {
-                    console.log("return")
                 return
             }
             area = 1 / settings.projection.scale() / scale / settings.ratio / 20
@@ -563,9 +562,7 @@ var ZoomableCanvasMap;
                 scale: scale,
                 translate: translate
             })
-            if (image) {
-                var background = image.image
-            } else {
+            if (!image) {
                 var background = new Image()
                 var partialPainter = new PartialPainter(settings.data, parameters)
             }
@@ -608,11 +605,11 @@ var ZoomableCanvasMap;
                     settings.translate = translate
 
                     if (image) {
-                           context.restore()
-                           settings.background = background
-                           settings.backgroundScale = settings.scale
-                           settings.backgroundTranslate = settings.translate
-                           map.paint()
+                        context.restore()
+                        settings.background = image.image
+                        settings.backgroundScale = image.scale
+                        settings.backgroundTranslate = image.translate
+                        map.paint()
                     } else {
                         partialPainter.finish()
                         background.onload = function() {
@@ -623,8 +620,8 @@ var ZoomableCanvasMap;
                                 translate: translate
                             })
                             settings.background = background
-                            settings.backgroundScale = settings.scale
-                            settings.backgroundTranslate = settings.translate
+                            settings.backgroundScale = scale
+                            settings.backgroundTranslate = translate
                             map.paint()
                         }
                         // TODO there is a function to get the image data from the context, is that faster?
@@ -634,13 +631,10 @@ var ZoomableCanvasMap;
                 })
         }
         this.zoom = function(d) {
-            console.log("Zoom")
             if (!d) {
-                console.log("out")
                 scaleZoom.call(this, 1, [0, 0])
                 return
             }
-            console.log(d)
             var bounds = dataPath.bounds(d),
                 dx = bounds[1][0] - bounds[0][0],
                 dy = bounds[1][1] - bounds[0][1],
