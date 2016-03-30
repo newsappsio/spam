@@ -39,19 +39,10 @@
                             dynamicpaint: function(parameters, hover) {
                                 if (!hover)
                                     return
-                                var mesh = topojson.mesh(d,
-                                    d.objects["provincias"],
-                                    function(a, b) {
-                                        return a !== b &&
-                                            (a.properties.name == hover.properties.name ||
-                                             b.properties.name == hover.properties.name)
-                                    })
-                                if (mesh) {
-                                    parameters.context.beginPath()
-                                    parameters.context.lineWidth = 1 / parameters.scale
-                                    parameters.path(hover)
-                                    parameters.context.stroke()
-                                }
+                                parameters.context.beginPath()
+                                parameters.context.lineWidth = 1 / parameters.scale
+                                parameters.path(hover)
+                                parameters.context.stroke()
                             },
                             click: function(parameters, d) { // TODO replace map with parameters?
                                 parameters.map.zoom(d)
