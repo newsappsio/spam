@@ -397,24 +397,20 @@ var ZoomableCanvasMap;
 
             for (var i in settings.data) {
                 var element = settings.data[i]
+                if (element.hoverElement &&
+                    inside(settings.projection.invert(point), element.hoverElement)) {
+                    continue
+                }
+                element.hoverElement = false
                 var lookup = element.lookupTree.search([point[0], point[1], point[0], point[1]])
                 for (var j in lookup) {
                     var feature = lookup[j][4]
                     if (inside(settings.projection.invert(point), feature)) {
-                        if (element.hoverElement == feature)
-                            break
                         element.hoverElement = feature
-                        repaint = true
                         break
-                    } else if (element.hoverElement) {
-                        element.hoverElement = false
-                        repaint = true
                     }
                 }
-                if (!lookup.length && element.hoverElement) {
-                    element.hoverElement = false
-                    repaint = true
-                }
+                repaint = true
             }
             repaint && paint()
         }
