@@ -535,7 +535,6 @@ var ZoomableCanvasMap;
             if (nearEqual(scale, settings.scale) &&
                 nearEqual(translate[0], settings.translate[0]) &&
                 nearEqual(translate[1], settings.translate[1])) {
-                console.log("Near equal reset")
                 scale = 1
                 translate = [0, 0]
             }
@@ -565,8 +564,8 @@ var ZoomableCanvasMap;
                 translate: translate
             })
             if (!image) {
-                var background = new Image()
-                var partialPainter = new PartialPainter(settings.data, parameters)
+                var background = new Image(),
+                    partialPainter = new PartialPainter(settings.data, parameters)
             }
 
             var translatedOne = translatePoint([settings.width, settings.height], scale, translate),
@@ -587,9 +586,9 @@ var ZoomableCanvasMap;
                 .duration(300)
                 .ease("linear")
                 .tween("zoom", function() {
-                    var i = d3.interpolateNumber(settings.scale, scale)
-                    var oldTranslate = settings.translate
-                    var oldScale = settings.scale
+                    var i = d3.interpolateNumber(settings.scale, scale),
+                        oldTranslate = settings.translate,
+                        oldScale = settings.scale
                     return function(t) {
                         settings.scale = i(t)
                         var newTranslate = [
@@ -598,8 +597,7 @@ var ZoomableCanvasMap;
                         ]
                         settings.translate = newTranslate
                         map.paint()
-                        if (!image)
-                            partialPainter.renderNext()
+                        !image && partialPainter.renderNext()
                     }
                 })
                 .each("end", function() {
