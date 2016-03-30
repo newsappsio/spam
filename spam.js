@@ -84,7 +84,8 @@ var ZoomableCanvasMap;
     }
 
     function paintBackgroundElement(element, parameters) {
-        element.prepaint(parameters)
+        if (element.prepaint)
+            element.prepaint(parameters)
         var lookup = element.lookupTree.search([
             parameters.translate[0],
             parameters.translate[1],
@@ -95,7 +96,8 @@ var ZoomableCanvasMap;
             var feature = lookup[j][4]
             paintFeature(element, feature, parameters)
         }
-        element.postpaint(parameters)
+        if (element.postpaint)
+            element.postpaint(parameters)
     }
 
     function PartialPainter(data, parameters) {
@@ -114,7 +116,8 @@ var ZoomableCanvasMap;
             if (!element || j >= currentLookup.length) {
                 element = data[index]
 
-                element.prepaint(parameters)
+                if (element.prepaint)
+                    element.prepaint(parameters)
                 currentLookup = element.lookupTree.search([
                     - parameters.translate[0],
                     - parameters.translate[1],
@@ -130,7 +133,7 @@ var ZoomableCanvasMap;
                 if ((performance.now() - start) > 10)
                     break
             }
-            if (j == currentLookup.length) {
+            if (j == currentLookup.length && element.postpaint) {
                 element.postpaint(parameters)
             }
         }
