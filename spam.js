@@ -243,9 +243,6 @@ var ZoomableCanvasMap;
         function init() {
             canvas = d3.select(settings.element)
                 .append("canvas")
-                .on("click", click)
-                .on("mousemove", hover)
-                .on("mouseleave", hoverLeave)
             context = canvas.node().getContext("2d")
 
             var devicePixelRatio = window.devicePixelRatio || 1,
@@ -295,6 +292,9 @@ var ZoomableCanvasMap;
                 }
 
                 context.restore()
+                canvas.on("click", click)
+                    .on("mousemove", hover)
+                    .on("mouseleave", hoverLeave)
             }
             for (var i in settings.data) {
                 var element = settings.data[i]
