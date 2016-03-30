@@ -94,7 +94,8 @@ var ZoomableCanvasMap;
                 parameters.height / parameters.scale - parameters.translate[1]
             ])
             for (var j in lookup) {
-                paintFeature(element, lookup[j][4], parameters)
+                var feature = lookup[j][4]
+                paintFeature(element, feature, parameters)
             }
         }
         if (element.postpaint)
@@ -237,14 +238,13 @@ var ZoomableCanvasMap;
         var dx = b[1][0] - b[0][0],
             dy = b[1][1] - b[0][1]
 
+        settings.height = settings.height || Math.ceil(dy * settings.width / dx)
+        d3.select(settings.parameters).attr("height", settings.height)
+
         if (!parameters.projection) {
-            settings.height = settings.height || Math.ceil(dy * settings.width / dx)
             settings.projection.scale(0.9 * (settings.width / dx))
                 .translate([settings.width / 2, settings.height / 2])
-        } else if (!settings.height) {
-            settings.height = dy * 1 / 0.9
         }
-        d3.select(settings.parameters).attr("height", settings.height)
 
         function init() {
             canvas = d3.select(settings.element)
