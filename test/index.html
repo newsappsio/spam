@@ -50,7 +50,9 @@
                         },
                         {
                             features: topojson.feature(roads, roads.objects["roads"]),
-                            paintfeature: function(parameters, d) {
+                            prepaint: function(parameters) {
+                                var features = topojson.feature(roads, roads.objects["roads"])
+                                parameters.path(features)
                                 parameters.context.lineWidth = 1 / parameters.scale
                                 parameters.context.strokeStyle = "black"
                                 parameters.context.stroke()

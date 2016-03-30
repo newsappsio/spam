@@ -86,15 +86,17 @@ var ZoomableCanvasMap;
     function paintBackgroundElement(element, parameters) {
         if (element.prepaint)
             element.prepaint(parameters)
-        var lookup = element.lookupTree.search([
-            parameters.translate[0],
-            parameters.translate[1],
-            parameters.width / parameters.scale - parameters.translate[0],
-            parameters.height / parameters.scale - parameters.translate[1]
-        ])
-        for (var j in lookup) {
-            var feature = lookup[j][4]
-            paintFeature(element, feature, parameters)
+        if (element.paintfeature) {
+            var lookup = element.lookupTree.search([
+                parameters.translate[0],
+                parameters.translate[1],
+                parameters.width / parameters.scale - parameters.translate[0],
+                parameters.height / parameters.scale - parameters.translate[1]
+            ])
+            for (var j in lookup) {
+                var feature = lookup[j][4]
+                paintFeature(element, feature, parameters)
+            }
         }
         if (element.postpaint)
             element.postpaint(parameters)
@@ -127,11 +129,15 @@ var ZoomableCanvasMap;
                 j = 0
                 ++index
             }
-            for (; j != currentLookup.length; ++j) {
-                var feature = currentLookup[j][4]
-                paintFeature(element, feature, parameters)
-                if ((performance.now() - start) > 10)
-                    break
+            if (element.paintfeature) {
+                for (; j != currentLookup.length; ++j) {
+                    var feature = currentLookup[j][4]
+                    paintFeature(element, feature, parameters)
+                    if ((performance.now() - start) > 10)
+                        break
+                }
+            } else {
+                j = currentLookup.length
             }
             if (j == currentLookup.length && element.postpaint) {
                 element.postpaint(parameters)
