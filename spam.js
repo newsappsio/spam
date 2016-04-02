@@ -216,8 +216,8 @@ var ZoomableCanvasMap;
             context = null
 
         if (!parameters.projection) {
-            var b = [[Number.MAX_VALUE, Number.MAX_VALUE],
-                     [Number.MIN_VALUE, Number.MIN_VALUE]]
+            var b = [[Infinity, Infinity],
+                     [-Infinity, -Infinity]]
             for (var i in settings.data) {
                 b = maxBounds(b, d3.geo.bounds(settings.data[i].features))
             }
@@ -230,8 +230,8 @@ var ZoomableCanvasMap;
                 return simplify.stream(settings.projection.stream(s))
             }
         })
-        var b = [[Number.MAX_VALUE, Number.MAX_VALUE],
-                 [Number.MIN_VALUE, Number.MIN_VALUE]]
+        var b = [[Infinity, Infinity],
+                 [-Infinity, -Infinity]]
         for (var i in settings.data) {
             b = maxBounds(b, dataPath.bounds(settings.data[i].features))
         }
