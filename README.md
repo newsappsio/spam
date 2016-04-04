@@ -1,12 +1,12 @@
-=== spam.js | maps in javascript ===
+# spam.js | maps in javascript
 TODO describe basic motivation
 describe that we depend on d3, rbush and topojson
 describe about way of painting while zooming into picture, prepaint/paintfeature/postpaint, dynamic paint
 
-== API ==
+## API
 spam.js exports two classes: StaticCanvasMap and ZoomableCanvasMap. The only difference between them is that the latter provides a *zoom*-function which takes a feature as parameter.
 
-= Constructor =
+### Constructor
 Both constructors take a parameters object, while both of them accept the same members.
 Mandatory elements:
 *element*: This can be any term that works with d3.select() and is used to lookup the element that is used as the parent of the DOM-elements the spam.js-code will create.
