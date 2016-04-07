@@ -244,7 +244,7 @@ var ZoomableCanvasMap;
             settings.projection.scale(0.9 * (settings.width / dx))
                 .translate([settings.width / 2, settings.height / 2])
         } else if (!settings.height) {
-            settings.height = dy * 1 / 0.9
+            settings.height = Math.ceil(dy * 1 / 0.9)
         }
         d3.select(settings.parameters).attr("height", settings.height)
 
