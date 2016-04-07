@@ -207,7 +207,7 @@ var ZoomableCanvasMap;
             }, parameters),
             simplify = d3.geo.transform({
                 point: function(x, y, z) {
-                    if (z >= settings.area) {
+                    if (!z || z >= settings.area) {
                         this.stream.point(x, y)
                     }
                 }
