@@ -1,14 +1,18 @@
 # spam
-spam.js is a small library to create modern [Canvas](https://developer.mozilla.org/en-US/docs/Web/API/Canvas_API) maps with [D3](https://github.com/mbostock/d3). It supports static and zoomable maps with automatic centering and retina support.
+spam.js is a small library to create modern [Canvas](https://developer.mozilla.org/en-US/docs/Web/API/Canvas_API) maps with [D3](https://github.com/mbostock/d3). It makes it easy to create static or zoomable maps with automatic centering and retina resolution. Custom projections, `d3.geo` path generators and multiple map features are also supported.
 
-It doesn't tie you to a framework, so you're still in charge of painting everything. For making that easy it divides the process into several stages (`prepaint`, `paintfeature`, `postpaint`, `dynamicpaint`).
-
-The library supports custom projections, `d3.geo` path generators and multiple features in the same map.
+It doesn't tie you to a framework, you're still in charge of painting everything. It divides the map rendering into several stages (`prepaint`, `paintfeature`, `postpaint`, `dynamicpaint`).
 
 ## Getting started
 spam.js depends on [D3](https://github.com/mbostock/d3), [rbush](https://github.com/mourner/rbush) and [TopoJSON](https://github.com/mbostock/topojson).
 
 Due to a bug on D3 and TopoJSON you'll need to use our forks. Grab them [here](https://github.com/lukasappelhans/d3) and [here](https://github.com/lukasappelhans/topojson). We are expecting a PR soon.
+
+Clone the repository (or download) the zip and include `spam.js` after D3, TopoJSON and rbush in your website.
+
+````html
+<script src="spam.js"></script>
+```
 
 Here's the most basic map you can do:
 
@@ -92,8 +96,8 @@ This is an array of objects that define what will be rendered by spam.js. spam.j
 
 ```javascript
 data: [{
-    input: options,
-    input: options
+    property: input,
+    property: input
 }]
 ```
 
@@ -101,12 +105,12 @@ You can also nest different objects if you need to paint multiple maps.
 
 ```javascript
 data: [{
-        input: options,
-        input: options
+        property: input,
+        property: input
     },
     {
-        input: options,
-        input: options
+        property: input,
+        property: input
     }
 ]
 ```
@@ -119,51 +123,21 @@ The TopoJSON feature you want to map, with its object name.
 
 Fires up before `paintfeature` and is useful for creating elements that only need to be painted once, as [graticules](http://support.esri.com/en/knowledgebase/GISDictionary/term/graticule).
 
-```javascript
-prepaint: function(parameters, d) {
-    // your code goes here
-}
-```
-
 <a name="paintfeature" href="README.md#paintfeature">#</a> **paintfeature**: function(parameters, d) {}
 
 The main painting event. This is where you can use canvas to paint the stroke of your map or fill it with colors to create a choropleth.
-
-```javascript
-paintfeature: function(parameters, d) {
-    // your code goes here
-}
-```
 
 <a name="postpaint" href="README.md#postpaint">#</a> **postpaint**: function(parameters, d) {}
 
 It gets called once after `paintfeature` is done. You can use this event to create objects on the top of the map, as labels, annotations, circles or bubbles.
 
-```javascript
-postpaint: function(parameters, d) {
-    // your code goes here
-}
-```
-
 <a name="dynamicpaint" href="README.md#dynamicpaint">#</a> **dynamicpaint**: function(parameters, hover) {}
 
 Gets called everytime the mouse is inside the map. It takes `parameters` and `hover`, which contains the properties of the current hovered object. This is indeed useful for creating tooltips.
-
-```javascript
-dynamicpaint: function(parameters, hover) {
-    // your code goes here
-}
-```
 
 <a name="click" href="README.md#click">#</a> **click**: function(parameters, d) {}
 
 Captures click events.
 
-```javascript
-click: function(parameters, d) {
-    // zooming example
-    parameters.map.zoom(d)
-}
-```
 ## License
 MIT © [newsapps.io](https://github.com/newsappsio).
