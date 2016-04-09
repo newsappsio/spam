@@ -119,7 +119,7 @@ features: topojson.feature(d, d.objects["map"]),
 #### prepaint
 Fires up before `paintfeature` and is useful for creating elements that only need to be painted once, as [graticules](http://support.esri.com/en/knowledgebase/GISDictionary/term/graticule).
 
-``javascript
+```javascript
 prepaint: function(parameters, d) {
     // your code goes here
 }
@@ -128,7 +128,7 @@ prepaint: function(parameters, d) {
 #### paintfeature
 The main painting event. This is where you can use canvas to paint the stroke of your map or fill it with colors to create a choropleth.
 
-``javascript
+```javascript
 paintfeature: function(parameters, d) {
     // your code goes here
 }
@@ -137,7 +137,7 @@ paintfeature: function(parameters, d) {
 #### postpaint
 It gets called once after `paintfeature` is done. You can use this event to create objects on the top of the map, as labels, annotations, circles or bubbles.
 
-``javascript
+```javascript
 postpaint: function(parameters, d) {
     // your code goes here
 }
@@ -146,7 +146,7 @@ postpaint: function(parameters, d) {
 #### dynamicpaint
 Gets called everytime the mouse is inside the map. It takes `parameters` and `hover`, which contains the properties of the current hovered object. This is indeed useful for creating tooltips.
 
-``javascript
+```javascript
 dynamicpaint: function(parameters, hover) {
     // your code goes here
 }
