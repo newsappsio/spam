@@ -111,14 +111,12 @@ data: [{
 ]
 ```
 
-#### features
+<a name="features" href="README.md#features">#</a> **features**: topojson.feature(d, d.objects["map"]).
+
 The TopoJSON feature you want to map, with its object name.
 
-```javascript
-features: topojson.feature(d, d.objects["map"]),
-```
+<a name="prepaint" href="README.md#prepaint">#</a> **prepaint**: function(parameters, d) {}
 
-#### prepaint
 Fires up before `paintfeature` and is useful for creating elements that only need to be painted once, as [graticules](http://support.esri.com/en/knowledgebase/GISDictionary/term/graticule).
 
 ```javascript
@@ -127,7 +125,8 @@ prepaint: function(parameters, d) {
 }
 ```
 
-#### paintfeature
+<a name="paintfeature" href="README.md#paintfeature">#</a> **paintfeature**: function(parameters, d) {}
+
 The main painting event. This is where you can use canvas to paint the stroke of your map or fill it with colors to create a choropleth.
 
 ```javascript
@@ -136,7 +135,8 @@ paintfeature: function(parameters, d) {
 }
 ```
 
-#### postpaint
+<a name="postpaint" href="README.md#postpaint">#</a> **postpaint**: function(parameters, d) {}
+
 It gets called once after `paintfeature` is done. You can use this event to create objects on the top of the map, as labels, annotations, circles or bubbles.
 
 ```javascript
@@ -145,7 +145,8 @@ postpaint: function(parameters, d) {
 }
 ```
 
-#### dynamicpaint
+<a name="dynamicpaint" href="README.md#dynamicpaint">#</a> **dynamicpaint**: function(parameters, hover) {}
+
 Gets called everytime the mouse is inside the map. It takes `parameters` and `hover`, which contains the properties of the current hovered object. This is indeed useful for creating tooltips.
 
 ```javascript
@@ -154,7 +155,8 @@ dynamicpaint: function(parameters, hover) {
 }
 ```
 
-#### click
+<a name="click" href="README.md#click">#</a> **click**: function(parameters, d) {}
+
 Captures click events.
 
 ```javascript
