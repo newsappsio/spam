@@ -1,5 +1,5 @@
 # spam
-spam.js is a small library to create modern [Canvas](https://developer.mozilla.org/en-US/docs/Web/API/Canvas_API) maps with [D3](https://github.com/mbostock/d3). It supports static and zoomable maps with automatic centering.
+spam.js is a small library to create modern [Canvas](https://developer.mozilla.org/en-US/docs/Web/API/Canvas_API) maps with [D3](https://github.com/mbostock/d3). It supports static and zoomable maps with automatic centering and retina support.
 
 It doesn't tie you to a custom framework, so you're still in charge of painting everything. For making that easy it divides the process into several stages (`prepaint`, `paintfeature`, `postpaint`, `dynamicpaint`).
 
