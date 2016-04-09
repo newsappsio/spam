@@ -11,6 +11,9 @@ Due to a bug on D3 and TopoJSON you'll need to use our forks. Grab them [here](h
 Clone the repository (or download) the zip and include `spam.js` after D3, TopoJSON and rbush in your website.
 
 ````html
+<script src="d3.min.js"></script>
+<script src="topojson.min.js"></script>
+<script src="rbush.min.js"></script>
 <script src="spam.js"></script>
 ```
 
