@@ -38,14 +38,16 @@ And that's it! A simple, static map in just a few lines of code! It will be auto
 
 ## Examples
 Explore some of the maps we already did with spam:
+
 - [Basic map](http://bl.ocks.org/martgnz/c48aa019de720fcd86030d3b07990d8d)
+- [Zoomable map]()
+
+- [Static map with labels](http://bl.ocks.org/martgnz/e5c0387a5bb675b061a2c0a9f573f86a)
 - [Static choropleth with tooltip, legend and graticule](http://bl.ocks.org/martgnz/1c0fa3985d0a7b51437cdfd326cc2fda)
+- [Static data visualization with custom projection](http://bl.ocks.org/martgnz/9023a67f080cca8b31ef5d6b1dcf4637)
 - [Zoomable choropleth with multiple features and tooltip](http://bl.ocks.org/martgnz/a61c2da0e45a108c857e)
-- [Zoomable choropleth with multiple features, tooltip and legend](http://bl.ocks.org/martgnz/a61c2da0e45a108c857e)
 - [Custom projection I + graticule](http://bl.ocks.org/martgnz/d8bc3d6c29e712e3255f095671a51967)
 - [Custom projection II + graticule](http://bl.ocks.org/martgnz/cce95512ca18c226b4cc)
-- [Static map with custom projection and labels](http://bl.ocks.org/martgnz/e5c0387a5bb675b061a2c0a9f573f86a)
-- [Static data visualization with custom projection](http://bl.ocks.org/martgnz/9023a67f080cca8b31ef5d6b1dcf4637)
 
 ## API
 spam.js exports two classes: StaticCanvasMap and ZoomableCanvasMap. The only difference between them is that the latter provides a *zoom*-function which takes a feature as parameter.
