@@ -79,7 +79,7 @@ zoomScaleFactor: 0.5
 ### projection
 You can specify a projection to override the default (mercator). Declare it the same way as you would in D3, as it supports the usual stuff (`translate`, `center`, `scale`). You can also just provide the name of the projection and spam will try to center and scale it.
 
-It supports custom projections, so you are able to use a projection from [`d3.geo.projection`](https://github.com/d3/d3-geo-projection/) or [`d3-composite-projections`](https://github.com/rveciana/d3-composite-projections) here if you load them before.
+It supports custom projections, so you are able to use a projection from [`d3.geo.projection`](https://github.com/d3/d3-geo-projection/) or [`d3-composite-projections`](https://github.com/rveciana/d3-composite-projections) here if you load them before:
 
 ```javascript
 projection: d3.geo.robinson()
