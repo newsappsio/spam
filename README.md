@@ -66,7 +66,7 @@ width: 960
 Takes a value with the desired height of the map.
 
 ```javascript
-width: 500
+height: 500
 ```
 
 ### zoomScaleFactor
