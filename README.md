@@ -10,7 +10,7 @@ spam.js depends on [D3](https://github.com/mbostock/d3), [rbush](https://github.
 
 Due to a bug on D3 and TopoJSON you'll need to use our forks. Grab them [here](https://github.com/lukasappelhans/d3) and [here](https://github.com/lukasappelhans/topojson). We are expecting a PR soon.
 
-Once you have the dependencies, load `spam.js` into your html and grab a TopoJSON. Here's the most basic map you can do. It reveals the structure of the code you need to follow.
+Here's the most basic map you can do:
 
 ```javascript
 d3.json("map.json", function(error, d) {
@@ -29,14 +29,6 @@ d3.json("map.json", function(error, d) {
     map.init()
 })
 ```
-
-First, load the TopoJSON as usual. We need presimplification first, and then you can declare the map variable and the type of map you want (`StaticCanvasMap` or `ZoomableCanvasMap`)
-
-Inside the object you are able to specify the settings. In this case we just need the html element where it will be created.
-
-`data` is where the painting happens, and inside,`features` contains the TopoJSON object (in this case, "map"). `paintfeature`is the responsible for painting the map.
-
-Here, as a simple example, I just want to paint the stroke of the map, so I use Canvas to do it.
 
 And that's it! A simple, static map in just a few lines of code! It will be automagically projected and centered in your container, nothing else needed.
 
