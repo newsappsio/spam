@@ -43,17 +43,40 @@ Explore some of the maps we already did with spam:
 - [Static map with custom projection and labels](http://bl.ocks.org/martgnz/e5c0387a5bb675b061a2c0a9f573f86a)
 - [Static data visualization with custom projection](http://bl.ocks.org/martgnz/9023a67f080cca8b31ef5d6b1dcf4637)
 
-### API
+## API
 spam.js exports two classes: StaticCanvasMap and ZoomableCanvasMap. The only difference between them is that the latter provides a *zoom*-function which takes a feature as parameter.
 
-#### Constructor
 Both constructors take a parameters object, while both of them accept the same members.
-Mandatory elements:
-*element*: This can be any term that works with d3.select() and is used to lookup the element that is used as the parent of the DOM-elements the spam.js-code will create.
 
-*data*: This is an array of objects that define what will be rendered by spam.js. spam.js can render multiple datasets, the first element in the array gets painted first. The only mandatory property is *features* which takes a FeatureCollection. (link to topojson?)
-TODO put the definition of the data before the spam api up there.
+### `element`
+This can be any term that works with d3.select() and is used to lookup the element that is used as the parent of the DOM-elements the spam.js-code will create.
 
-Optional elements: *prepaint*, *paintfeature*, *postpaint*, *dynamicpaint*, *click*
-- *width*
-- *height*
+### `data`
+This is an array of objects that define what will be rendered by spam.js. spam.js can render multiple datasets, the first element in the array gets painted first. The only mandatory property is *features* which takes a [FeatureCollection](https://github.com/mbostock/topojson/wiki/API-Reference#feature).
+
+### `width`
+Takes a value with the desired width of the map.
+
+### `height`
+Takes a value with the desired height of the map.
+
+### `prepaint`
+Fires up before `paintfeature` and is useful for creating elements that only need to be painted once, as [graticules](http://support.esri.com/en/knowledgebase/GISDictionary/term/graticule).
+
+### `paintfeature`
+The main painting event. This is where you can use canvas to paint the stroke of your map or fill it with colors to create a choropleth.
+
+### `postpaint`
+It gets called once after `paintfeature` is done. You can use this event to create objects on the top of the map, as labels, annotations, circles or bubbles.
+
+### `dynamicpaint`
+Gets called everytime the mouse is inside the map. It takes `parameters` and `hover`, which contains the properties of the current hovered object. This is indeed useful for creating tooltips.
+
+### `click`
+Captures click events.
+
+### `zoomScaleFactor`
+Takes a value between `0` and `1` which sets the zooming factor of the map.
+
+## License
+MIT © [newsapps.io](https://github.com/newsappsio).
