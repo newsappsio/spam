@@ -1,7 +1,7 @@
 # spam
 spam.js is a small library to create modern [Canvas](https://developer.mozilla.org/en-US/docs/Web/API/Canvas_API) maps with [D3](https://github.com/mbostock/d3). It supports static and zoomable maps with automatic centering and retina support.
 
-It doesn't tie you to a custom framework, so you're still in charge of painting everything. For making that easy it divides the process into several stages (`prepaint`, `paintfeature`, `postpaint`, `dynamicpaint`).
+It doesn't tie you to a framework, so you're still in charge of painting everything. For making that easy it divides the process into several stages (`prepaint`, `paintfeature`, `postpaint`, `dynamicpaint`).
 
 The library supports custom projections, `d3.geo` path generators and multiple features in the same map.
 
@@ -77,10 +77,10 @@ zoomScaleFactor: 0.5
 ```
 
 ### projection
-You can specify a projection to override the default (mercator). Declare it the same way as you would in D3, as it supports the usual stuff (`translate`, `center`, `scale`). You can also just provide the name of the projection and spam will try to center and scale it.
+You can specify a projection to override the default (mercator). Declare it the same way as you would in D3, as it supports the usual stuff (`translate`, `center`, `scale`). You can also just provide the name of the projection and spam will try to center and scale it. It supports custom projections, so you are able to use a projection from `(d3.geo.projection)[https://github.com/d3/d3-geo-projection/]` or `(d3-composite-projections)[https://github.com/rveciana/d3-composite-projections]` here if you load them before.
 
 ```javascript
-projection: d3.geo.conicConformalSpain()
+projection: d3.geo.stereographic()
     .translate([960 / 2, 500 / 2])
     .scale(1000)
 ```
