@@ -6,15 +6,43 @@ It doesn't tie you to a custom framework, so you're still in charge of painting 
 The library supports custom projections, `d3.geo` path generators and multiple features in the same map.
 
 ## Getting started
-spam.js depends on D3, rbush and topojson.
+spam.js depends on [D3](https://github.com/mbostock/d3), [rbush](https://github.com/mourner/rbush) and [TopoJSON](https://github.com/mbostock/topojson).
 
-TODO describe basic motivation
-describe that we depend on d3, rbush and topojson
-describe about way of painting while zooming into picture, prepaint/paintfeature/postpaint, dynamic paint
+Due to a bug on D3 and TopoJSON you'll need to use our forks. Grab them [here](https://github.com/lukasappelhans/d3) and [here](https://github.com/lukasappelhans/topojson). We are expecting a PR soon.
+
+Once you have the dependencies, load `spam.js` into your html and grab a TopoJSON. Here's the most basic map you can do. It reveals the structure of the code you need to follow.
+
+```javascript
+d3.json("map.json", function(error, d) {
+    topojson.presimplify(d)
+
+    var map = new StaticCanvasMap({
+        element: "body",
+        data: [{
+                features: topojson.feature(d, d.objects["map"]),
+                paintfeature: function(parameters, d) {
+                    parameters.context.stroke()
+                }
+            }
+        ]
+    })
+    map.init()
+})
+```
+
+First, load the TopoJSON as usual. We need presimplification first, and then you can declare the map variable and the type of map you want (`StaticCanvasMap` or `ZoomableCanvasMap`)
+
+Inside the object you are able to specify the settings. In this case we just need the html element where it will be created.
+
+`data` is where the painting happens, and inside,`features` contains the TopoJSON object (in this case, "map"). `paintfeature`is the responsible for painting the map.
+
+Here, as a simple example, I just want to paint the stroke of the map, so I use Canvas to do it.
+
+And that's it! A simple, static map in just a few lines of code! It will be automagically projected and centered in your container, nothing else needed.
 
 ## Examples
 Explore some of the maps we already did with spam:
-- [Basic map](http://bl.ocks.org/martgnz/bf11c0d07cc5d667f25d749dd4d275ea)
+- [Basic map](http://bl.ocks.org/martgnz/c48aa019de720fcd86030d3b07990d8d)
 - [Static choropleth with tooltip, legend and graticule](http://bl.ocks.org/martgnz/1c0fa3985d0a7b51437cdfd326cc2fda)
 - [Zoomable choropleth with multiple features and tooltip](http://bl.ocks.org/martgnz/a61c2da0e45a108c857e)
 - [Zoomable choropleth with multiple features, tooltip and legend](http://bl.ocks.org/martgnz/a61c2da0e45a108c857e)
