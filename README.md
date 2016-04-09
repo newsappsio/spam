@@ -1,7 +1,27 @@
-## spam.js | maps in javascript
+# spam
+spam.js is a small library to create modern [Canvas](https://developer.mozilla.org/en-US/docs/Web/API/Canvas_API) maps with [D3](https://github.com/mbostock/d3). It supports static and zoomable maps with automatic centering.
+
+It doesn't tie you to a custom framework, so you're still in charge of painting the map. For making that easy it divides the process into several stages (`prepaint`, `paintfeature`, `postpaint`, `dynamicpaint`).
+
+The library supports custom projections, `d3.geo` path generators and multiple features in the same map.
+
+## Getting started
+spam.js depends on D3, rbush and topojson.
+
 TODO describe basic motivation
 describe that we depend on d3, rbush and topojson
 describe about way of painting while zooming into picture, prepaint/paintfeature/postpaint, dynamic paint
+
+## Examples
+Explore some of the maps we already did with spam:
+- [Basic map](http://bl.ocks.org/martgnz/bf11c0d07cc5d667f25d749dd4d275ea)
+- [Static choropleth with tooltip, legend and graticule](http://bl.ocks.org/martgnz/1c0fa3985d0a7b51437cdfd326cc2fda)
+- [Zoomable choropleth with multiple features and tooltip](http://bl.ocks.org/martgnz/a61c2da0e45a108c857e)
+- [Zoomable choropleth with multiple features, tooltip and legend](http://bl.ocks.org/martgnz/a61c2da0e45a108c857e)
+- [Custom projection I + graticule](http://bl.ocks.org/martgnz/d8bc3d6c29e712e3255f095671a51967)
+- [Custom projection II + graticule](http://bl.ocks.org/martgnz/cce95512ca18c226b4cc)
+- [Static map with custom projection and labels](http://bl.ocks.org/martgnz/e5c0387a5bb675b061a2c0a9f573f86a)
+- [Static data visualization with custom projection](http://bl.ocks.org/martgnz/9023a67f080cca8b31ef5d6b1dcf4637)
 
 ### API
 spam.js exports two classes: StaticCanvasMap and ZoomableCanvasMap. The only difference between them is that the latter provides a *zoom*-function which takes a feature as parameter.
