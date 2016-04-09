@@ -38,10 +38,8 @@ And that's it! A simple, static map in just a few lines of code! It will be auto
 
 ## Examples
 Explore some of the maps we already did with spam:
-
 - [Basic map](http://bl.ocks.org/martgnz/c48aa019de720fcd86030d3b07990d8d)
-- [Zoomable map]()
-
+- [Zoomable map](http://bl.ocks.org/martgnz/c48aa019de720fcd86030d3b07990d8d)
 
 - [Static map with labels](http://bl.ocks.org/martgnz/e5c0387a5bb675b061a2c0a9f573f86a)
 - [Static choropleth with tooltip, legend and graticule](http://bl.ocks.org/martgnz/1c0fa3985d0a7b51437cdfd326cc2fda)
