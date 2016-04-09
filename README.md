@@ -41,8 +41,8 @@ And that's it! A simple, static map in just a few lines of code! It will be auto
 
 ## Examples
 Explore some of the maps we already did with spam:
-- [Basic map](http://bl.ocks.org/martgnz/c48aa019de720fcd86030d3b07990d8d)
-- [Zoomable map](http://bl.ocks.org/martgnz/c48aa019de720fcd86030d3b07990d8d)
+- [Static map](http://bl.ocks.org/martgnz/c48aa019de720fcd86030d3b07990d8d)
+- [Zoomable map](http://bl.ocks.org/martgnz/fa8187c716c8a6d788eab7d51095b419)
 
 ---
 - [Static map with labels](http://bl.ocks.org/martgnz/e5c0387a5bb675b061a2c0a9f573f86a)
