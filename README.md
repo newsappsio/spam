@@ -120,6 +120,7 @@ data: [{
 ]
 ```
 
+#### Properties
 <a name="features" href="README.md#features">#</a> **features**: topojson.feature(d, d.objects["map"]).
 
 The TopoJSON feature you want to map, with its object name.
