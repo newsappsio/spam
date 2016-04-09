@@ -51,11 +51,30 @@ Both constructors take a parameters object, while both of them accept the same m
 ### element
 This can be any term that works with d3.select() and is used to lookup the element that is used as the parent of the DOM-elements the spam.js-code will create.
 
+```javascript
+element: ".container"
+```
+
 ### width
 Takes a value with the desired width of the map.
 
+```javascript
+width: 960
+```
+
 ### height
 Takes a value with the desired height of the map.
+
+```javascript
+width: 500
+```
+
+### zoomScaleFactor
+Takes a value between `0` and `1` which sets the zooming factor of the map.
+
+```javascript
+zoomScaleFactor: 0.5
+```
 
 ### projection
 You can specify a projection to override the default (mercator). Declare it the same way as you would in D3, as it supports the usual stuff (`translate`, `center`, `scale`). You can also just provide the name of the projection and spam will try to center and scale it.
@@ -69,25 +88,78 @@ projection: d3.geo.conicConformalSpain()
 ### data
 This is an array of objects that define what will be rendered by spam.js. spam.js can render multiple datasets, the first element in the array gets painted first. The only mandatory property is *features* which takes a [FeatureCollection](https://github.com/mbostock/topojson/wiki/API-Reference#feature).
 
+```javascript
+data: [{
+    input: options,
+    input: options
+}]
+```
+
+You can also nest different objects if you need to paint multiple maps.
+
+```javascript
+data: [{
+        input: options,
+        input: options
+    },
+    {
+        input: options,
+        input: options
+    }
+]
+```
+
 #### features
+The TopoJSON feature you want to map, with its object name.
+
+```javascript
+features: topojson.feature(d, d.objects["map"]),
+```
 
 #### prepaint
 Fires up before `paintfeature` and is useful for creating elements that only need to be painted once, as [graticules](http://support.esri.com/en/knowledgebase/GISDictionary/term/graticule).
 
+``javascript
+prepaint: function(parameters, d) {
+    // your code goes here
+}
+```
+
 #### paintfeature
 The main painting event. This is where you can use canvas to paint the stroke of your map or fill it with colors to create a choropleth.
+
+``javascript
+paintfeature: function(parameters, d) {
+    // your code goes here
+}
+```
 
 #### postpaint
 It gets called once after `paintfeature` is done. You can use this event to create objects on the top of the map, as labels, annotations, circles or bubbles.
 
+``javascript
+postpaint: function(parameters, d) {
+    // your code goes here
+}
+```
+
 #### dynamicpaint
 Gets called everytime the mouse is inside the map. It takes `parameters` and `hover`, which contains the properties of the current hovered object. This is indeed useful for creating tooltips.
+
+``javascript
+dynamicpaint: function(parameters, hover) {
+    // your code goes here
+}
+```
 
 #### click
 Captures click events.
 
-#### zoomScaleFactor
-Takes a value between `0` and `1` which sets the zooming factor of the map.
-
+```javascript
+click: function(parameters, d) {
+    // zooming example
+    parameters.map.zoom(d)
+}
+```
 ## License
 MIT © [newsapps.io](https://github.com/newsappsio).
