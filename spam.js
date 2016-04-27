@@ -80,13 +80,15 @@ var ZoomableCanvasMap;
     function paintFeature(element, feature, parameters) {
         parameters.context.beginPath()
         parameters.path(feature)
-        element.paintfeature(parameters, feature)
+        element.static.paintfeature(parameters, feature)
     }
 
     function paintBackgroundElement(element, parameters) {
-        if (element.prepaint)
-            element.prepaint(parameters)
-        if (element.paintfeature) {
+        if (!element.static)
+            return
+        if (element.static.prepaint)
+            element.static.prepaint(parameters)
+        if (element.static.paintfeature) {
             var lookup = element.lookupTree.search([
                 parameters.translate[0],
                 parameters.translate[1],
@@ -97,8 +99,8 @@ var ZoomableCanvasMap;
                 paintFeature(element, lookup[j][4], parameters)
             }
         }
-        if (element.postpaint)
-            element.postpaint(parameters)
+        if (element.static.postpaint)
+            element.static.postpaint(parameters)
     }
 
     function PartialPainter(data, parameters) {
@@ -115,10 +117,16 @@ var ZoomableCanvasMap;
                 return
             var start = performance.now()
             if (!element || j >= currentLookup.length) {
+                while (index < data.length && !data[index].static) {
+                    index++
+                }
+                if (index >= data.length)
+                    return
                 element = data[index]
 
-                if (element.prepaint)
-                    element.prepaint(parameters)
+                if (element.static.prepaint)
+                    element.static.prepaint(parameters)
+
                 currentLookup = element.lookupTree.search([
                     - parameters.translate[0],
                     - parameters.translate[1],
@@ -128,7 +136,7 @@ var ZoomableCanvasMap;
                 j = 0
                 ++index
             }
-            if (element.paintfeature) {
+            if (element.static.paintfeature) {
                 for (; j != currentLookup.length; ++j) {
                     var feature = currentLookup[j][4]
                     paintFeature(element, feature, parameters)
@@ -138,8 +146,8 @@ var ZoomableCanvasMap;
             } else {
                 j = currentLookup.length
             }
-            if (j == currentLookup.length && element.postpaint) {
-                element.postpaint(parameters)
+            if (j == currentLookup.length && element.static.postpaint) {
+                element.static.postpaint(parameters)
             }
         }
         this.finish = function() {
@@ -149,10 +157,15 @@ var ZoomableCanvasMap;
                 index--
             for (; index != data.length; ++index) {
                 if (j >= currentLookup.length) {
+                    while (!data[index].static && index < data.length) {
+                        index++
+                    }
+                    if (index >= data.length)
+                        return
                     element = data[index]
 
-                    if (element.prepaint)
-                        element.prepaint(parameters)
+                    if (element.static.prepaint)
+                        element.static.prepaint(parameters)
                     currentLookup = element.lookupTree.search([
                         - parameters.translate[0],
                         - parameters.translate[1],
@@ -161,14 +174,15 @@ var ZoomableCanvasMap;
                     ])
                     j = 0
                 }
-                for (; j != currentLookup.length; ++j) {
-                    var feature = currentLookup[j][4]
-                    paintFeature(element, feature, parameters)
+                if (element.static.paintfeature) {
+                    for (; j != currentLookup.length; ++j) {
+                        var feature = currentLookup[j][4]
+                        paintFeature(element, feature, parameters)
+                    }
                 }
-                if (element.postpaint)
-                    element.postpaint(parameters)
+                if (element.static.postpaint)
+                    element.static.postpaint(parameters)
             }
-            index = 0
         }
     }
 
@@ -295,14 +309,20 @@ var ZoomableCanvasMap;
                 for (var i in settings.data) {
                     var element = settings.data[i]
 
-                    if (element.dynamicpaint)
-                        element.dynamicpaint(parameters, null)
+                    if (element.dynamic && element.dynamic.postpaint)
+                        element.dynamic.postpaint(parameters, null)
                 }
 
                 context.restore()
                 canvas.on("click", click)
                     .on("mousemove", hover)
                     .on("mouseleave", hoverLeave)
+            }
+
+            for (var i in settings.data) {
+                var element = settings.data[i]
+                if (element.dynamic && element.dynamic.prepaint)
+                    element.dynamic.prepaint(parameters, element.hoverElement)
             }
             for (var i in settings.data) {
                 var element = settings.data[i]
@@ -329,11 +349,6 @@ var ZoomableCanvasMap;
                 settings.height / settings.scale)
             context.clip()
 
-            context.drawImage(settings.background, 0, 0,
-                settings.width * settings.ratio, settings.height * settings.ratio,
-                - settings.backgroundTranslate[0],
-                - settings.backgroundTranslate[1],
-                settings.width / settings.backgroundScale, settings.height / settings.backgroundScale)
 
             // FIXME this needs a way for the callback to use the lookupTree?
             var parameters = {
@@ -345,11 +360,25 @@ var ZoomableCanvasMap;
                 height: settings.height,
                 map: settings.map
             }
+
             settings.area = 1 / settings.projection.scale() / settings.scale / settings.ratio / 20
+
             for (var i in settings.data) {
                 var element = settings.data[i]
-                if (element.dynamicpaint)
-                    element.dynamicpaint(parameters, element.hoverElement)
+                if (element.dynamic && element.dynamic.prepaint)
+                    element.dynamic.prepaint(parameters, element.hoverElement)
+            }
+
+            context.drawImage(settings.background, 0, 0,
+                settings.width * settings.ratio, settings.height * settings.ratio,
+                - settings.backgroundTranslate[0],
+                - settings.backgroundTranslate[1],
+                settings.width / settings.backgroundScale, settings.height / settings.backgroundScale)
+
+            for (var i in settings.data) {
+                var element = settings.data[i]
+                if (element.dynamic && element.dynamic.postpaint)
+                    element.dynamic.postpaint(parameters, element.hoverElement)
             }
 
             context.restore()
@@ -504,7 +533,7 @@ var ZoomableCanvasMap;
             })
 
         settings.map = this
-        settings.zoomScaleFactor = settings.zoomScaleFactor || 0.5
+        settings.zoomScale = settings.zoomScale || 0.5
 
         this.init = function() {
             map.init()
@@ -642,7 +671,7 @@ var ZoomableCanvasMap;
                 dy = bounds[1][1] - bounds[0][1],
                 bx = (bounds[0][0] + bounds[1][0]) / 2,
                 by = (bounds[0][1] + bounds[1][1]) / 2,
-                scale = settings.zoomScaleFactor *
+                scale = settings.zoomScale *
                     Math.min(settings.width / dx, settings.height / dy),
                 translate = [-bx + settings.width / scale / 2,
                              -by + settings.height / scale / 2]
