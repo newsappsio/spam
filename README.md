@@ -133,27 +133,37 @@ The TopoJSON FeatureCollection you want to paint.
 
 ##### static
 
-// TODO
+The following functions are used to construct the static part of the map.
 
 <a name="prepaint" href="README.md#prepaint">#</a> **prepaint**: function(parameters, d) {}
 
-Fires up before `paintfeature` and is useful for creating elements that only need to be painted once, as [graticules](http://support.esri.com/en/knowledgebase/GISDictionary/term/graticule).
+Fires up before `paintfeature` and is useful for creating elements that only need to be painted once, for example [graticules](http://support.esri.com/en/knowledgebase/GISDictionary/term/graticule).
 
 <a name="paintfeature" href="README.md#paintfeature">#</a> **paintfeature**: function(parameters, d) {}
 
-The main painting event. This is where you can use canvas to paint the stroke of your map or fill it with colors to create a choropleth.
+The main painting event. This is where you can use canvas to paint the stroke of your map or fill it with colors to create a choropleth. This function gets called once for every feature in features.
 
 <a name="postpaint" href="README.md#postpaint">#</a> **postpaint**: function(parameters, d) {}
 
-It gets called once after `paintfeature` is done. You can use this event to create objects on the top of the map, as labels, annotations, circles or bubbles.
+It gets called once after all calls to `paintfeature` are done. You can use this event to create objects on the top of the map like labels, annotations, circles or bubbles.
 
-<a name="dynamicpaint" href="README.md#dynamicpaint">#</a> **dynamicpaint**: function(parameters, hover) {}
+##### dynamic
 
-Gets called everytime the mouse is inside the map. It takes `parameters` and `hover`, which contains the properties of the current hovered object. This is indeed useful for creating tooltips.
+The following functions are used for dynamic painting. These functions get called a lot more often than the static ones, be careful when putting performance critical tasks in there.
+
+Both functions get called when the map needs to be repainted, but the constraints are not touched. For example when the mouse moves over a different feature, these functions be called.
+
+<a name="dynamicprepaint" href="README.md#dynamicprepaint">#</a> **prepaint**: function(parameters, hover) {}
+
+This function gets called before the static image gets painted on the map. This makes it the first thing that gets called after the canvas is cleared. It takes `parameters` and `hover`, which contains the properties of the current hovered object.
+
+<a name="dynamicpostpaint" href="README.md#dynamicpostpaint">#</a> **postpaint**: function(parameters, hover) {}
+
+This function gets called after the static image gets painted. It takes `parameters` and `hover`, which contains the properties of the current hovered object. This is also useful for creating tooltips.
 
 <a name="click" href="README.md#click">#</a> **click**: function(parameters, d) {}
 
-Captures click events.
+This function gets called everytime the user clicks on the canvas. The 'd' parameter will be the clicked feature or null, in case the click was not on any feature.
 
 ## License
 MIT © [newsapps.io](https://github.com/newsappsio).
