@@ -58,8 +58,6 @@ And that's it! A simple, static map in just a few lines of code! It will be auto
 Explore some of the maps we already did with spam:
 - [Basic static map](http://bl.ocks.org/martgnz/c48aa019de720fcd86030d3b07990d8d)
 - [Basic zoomable map](http://bl.ocks.org/martgnz/fa8187c716c8a6d788eab7d51095b419)
-
----
 - [Static map with labels](http://bl.ocks.org/martgnz/e5c0387a5bb675b061a2c0a9f573f86a)
 - [Static data visualization](http://bl.ocks.org/martgnz/9023a67f080cca8b31ef5d6b1dcf4637)
 - [Custom projection](http://bl.ocks.org/martgnz/d8bc3d6c29e712e3255f095671a51967)
