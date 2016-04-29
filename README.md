@@ -1,14 +1,17 @@
 # spam
 spam.js is a small library to create modern [Canvas](https://developer.mozilla.org/en-US/docs/Web/API/Canvas_API) maps with [D3](https://github.com/mbostock/d3). It makes it easy to create static or zoomable maps with automatic centering and retina resolution. Custom projections, `d3.geo` path generators and multiple map features are also supported.
 
-It doesn't tie you to a framework, you're still in charge of painting everything. For doing that the library divides the map rendering into several stages: `prepaint`, `paintfeature`, `postpaint` and `dynamicpaint`.
+When using spam.js you are still in charge of painting everything. However it creates the canvas boilerplate and tries to handle as much as possible without putting constraints on the user. In order to improve performance, spam.js uses two painting phases. The 'static' layer is created once (for every zoom level) and should contain the majority of operations. After these operations complete, the canvas is saved into a picture.
+Now every time the canvas needs a repaint (e.g. for hover effects), spam.js enters the 'dynamic' painting phase. Here we provide the option to paint dynamic content, while painting the 'static' image in the background.
+
+In order to get the most out of spam.js, we encourage you to think about which parts of your map are static and dynamic beforehand and then use the appropriate callbacks. The more code runs in the 'static' functions, the faster spam.js will become.
 
 ## Getting started
 spam.js depends on [D3](https://github.com/mbostock/d3), [rbush](https://github.com/mourner/rbush) and [TopoJSON](https://github.com/mbostock/topojson).
 
-Due to a bug on D3 and TopoJSON you'll need to use our forks. Grab them [here](https://github.com/lukasappelhans/d3) and [here](https://github.com/lukasappelhans/topojson). We are expecting a PR soon.
+Due to bugs in D3 and TopoJSON you'll need to use our forks. Grab them [here](https://github.com/lukasappelhans/d3) and [here](https://github.com/lukasappelhans/topojson). We are expecting a PR soon.
 
-Clone the repository (or download) the zip and include `spam.js` after D3, TopoJSON and rbush in your website.
+Clone the repository (or download the zip) and include `spam.js` after D3, TopoJSON and rbush in your website.
 
 ````html
 <script src="d3.min.js"></script>
@@ -25,10 +28,13 @@ d3.json("map.json", function(error, d) {
 
     var map = new StaticCanvasMap({
         element: "body",
-        data: [{
+        data: [
+            {
                 features: topojson.feature(d, d.objects["map"]),
-                paintfeature: function(parameters, d) {
-                    parameters.context.stroke()
+                static: {
+                    paintfeature: function(parameters, d) {
+                        parameters.context.stroke()
+                    }
                 }
             }
         ]
@@ -58,35 +64,35 @@ spam.js exports two classes: StaticCanvasMap and ZoomableCanvasMap. The only dif
 Both constructors take a parameters object, while both of them accept the same members.
 
 ### element
-This can be any term that works with d3.select() and is used to lookup the element that is used as the parent of the DOM-elements the spam.js-code will create.
+This can be any term that works with d3.select() and is used to lookup the element that is used as the parent of the DOM-elements the spam.js code will create.
 
 ```javascript
 element: ".container"
 ```
 
-### width
-Takes a value with the desired width of the map.
+### width (optional)
+Takes a value with the desired width of the map. If width is not specified, spam.js will use the width of the parent element.
 
 ```javascript
 width: 960
 ```
 
-### height
-Takes a value with the desired height of the map.
+### height (optional)
+Takes a value with the desired height of the map. If height is not specified, spam.js will automagically define it by using the minimum height needed for the map.
 
 ```javascript
 height: 500
 ```
 
-### zoomScaleFactor
-Takes a value between `0` and `1` which sets the zooming factor of the map.
+### zoomScale (optional)
+Takes a value between `0` and `1` which sets the zooming factor of the map. The default value is 0.5.
 
 ```javascript
 zoomScaleFactor: 0.5
 ```
 
-### projection
-You can specify a projection to override the default (mercator). Declare it the same way as you would in D3, as it supports the usual stuff (`translate`, `center`, `scale`). You can also just provide the name of the projection and spam will try to center and scale it.
+### projection (optional)
+You can specify a projection to override the default (mercator). Declare it the same way as you would in D3, as it supports the usual stuff (`translate`, `center`, `scale`).
 
 It supports custom projections, so you are able to use a projection from [`d3.geo.projection`](https://github.com/d3/d3-geo-projection/) or [`d3-composite-projections`](https://github.com/rveciana/d3-composite-projections) if you load them before:
 
@@ -123,7 +129,11 @@ data: [{
 #### Properties
 <a name="features" href="README.md#features">#</a> **features**: topojson.feature(d, d.objects["map"]).
 
-The TopoJSON feature you want to map, with its object name.
+The TopoJSON FeatureCollection you want to paint.
+
+##### static
+
+// TODO
 
 <a name="prepaint" href="README.md#prepaint">#</a> **prepaint**: function(parameters, d) {}
 
