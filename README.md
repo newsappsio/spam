@@ -55,7 +55,8 @@ d3.json("map.json", function(error, d) {
 And that's it! A simple, static map in just a few lines of code! It will be automagically projected and centered in your container, nothing else needed.
 
 ## Examples
-Explore some of the maps we already did with spam:
+The best way to start making maps with spam.js is reading the examples. At first, you can use the same structure in your maps and change the TopoJSON underneath.
+
 - [Basic static map](http://bl.ocks.org/martgnz/c48aa019de720fcd86030d3b07990d8d)
 - [Basic zoomable map](http://bl.ocks.org/martgnz/fa8187c716c8a6d788eab7d51095b419)
 - [Static map with labels](http://bl.ocks.org/martgnz/e5c0387a5bb675b061a2c0a9f573f86a)
