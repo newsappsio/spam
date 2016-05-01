@@ -57,32 +57,36 @@
                         zoomScaleFactor: 0.1,
                         data: [{
                             features: topojson.feature(d, d.objects["municipios"]),
-                            prepaint: function(parameters) {
+                            static: {
+                                prepaint: function(parameters) {
 
-                            },
-                            paintfeature: function(parameters, d) {
-                                if (d.properties.name[0] < "H")
-                                    parameters.context.fillStyle = "blue"
-                                else
-                                    parameters.context.fillStyle = "red"
-                                parameters.context.fill()
-                            },
-                            postpaint: function(parameters) {
+                                },
+                                paintfeature: function(parameters, d) {
+                                    if (d.properties.name[0] < "H")
+                                        parameters.context.fillStyle = "blue"
+                                    else
+                                        parameters.context.fillStyle = "red"
+                                    parameters.context.fill()
+                                },
+                                postpaint: function(parameters) {
 
+                                }
                             },
                             // TODO replace path with map?
-                            dynamicpaint: function(parameters, hover) {
-                                if (hover) {
-                                    parameters.context.beginPath()
-                                    parameters.context.lineWidth = 1 / parameters.scale
-                                    parameters.path(hover)
-                                    parameters.context.stroke()
-                                }
-                                if (selected) {
-                                    parameters.context.beginPath()
-                                    parameters.context.lineWidth = 1 / parameters.scale
-                                    parameters.path(selected)
-                                    parameters.context.stroke()
+                            dynamic: {
+                                postpaint: function(parameters, hover) {
+                                    if (hover) {
+                                        parameters.context.beginPath()
+                                        parameters.context.lineWidth = 1 / parameters.scale
+                                        parameters.path(hover)
+                                        parameters.context.stroke()
+                                    }
+                                    if (selected) {
+                                        parameters.context.beginPath()
+                                        parameters.context.lineWidth = 1 / parameters.scale
+                                        parameters.path(selected)
+                                        parameters.context.stroke()
+                                    }
                                 }
                             },
                             click: function(parameters, d) { // TODO

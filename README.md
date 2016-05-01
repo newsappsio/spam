@@ -112,7 +112,7 @@ data: [{
 }]
 ```
 
-You can also nest different objects if you need to paint multiple maps.
+You can also nest different objects if you need to paint multiple map layers of different features.
 
 ```javascript
 data: [{
@@ -164,6 +164,8 @@ This function gets called after the static image gets painted. It takes `paramet
 <a name="click" href="README.md#click">#</a> **click**: function(parameters, d) {}
 
 This function gets called everytime the user clicks on the canvas. The 'd' parameter will be the clicked feature or null, in case the click was not on any feature.
+
+// TODO init/paint? zoom? Differences Static vs Zoomable? optional or not?
 
 ## License
 MIT © [newsapps.io](https://github.com/newsappsio).

@@ -642,6 +642,7 @@ var ZoomableCanvasMap;
                         settings.backgroundTranslate = image.translate
                         map.paint()
                     } else {
+                        map.paint()
                         partialPainter.finish()
                         background.onload = function() {
                             context.restore()
