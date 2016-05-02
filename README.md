@@ -1,4 +1,4 @@
-![spam](https://cloud.githubusercontent.com/assets/1236790/14952933/3679edc8-1065-11e6-920a-207f8443f141.png)
+# ![spam](https://cloud.githubusercontent.com/assets/1236790/14952933/3679edc8-1065-11e6-920a-207f8443f141.png)
 
 spam.js is a small library to create modern [Canvas](https://developer.mozilla.org/en-US/docs/Web/API/Canvas_API) maps with [D3](https://github.com/mbostock/d3). It makes it easy to create static or zoomable maps with automatic centering and retina resolution. Custom projections, `d3.geo` path generators and multiple map features are also supported.
 
