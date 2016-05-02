@@ -70,4 +70,4 @@ The best way to start making maps with spam.js is reading the examples. You can 
 Check the [API docs](https://github.com/lukasappelhans/spam.js/wiki/API) on the wiki for more information.
 
 ## License
-MIT © [newsapps.io](https://github.com/newsappsio).
+MIT © Lukas Appelhans, Martín González.
