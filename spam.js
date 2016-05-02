@@ -422,8 +422,6 @@ var ZoomableCanvasMap;
 
         function hoverLeave() {
             var parameters = {
-                path: dataPath,
-                context: context,
                 scale: settings.scale,
                 translate: settings.translate,
                 width: settings.width,
@@ -442,8 +440,6 @@ var ZoomableCanvasMap;
         function hover() {
             var point = translatePoint(d3.mouse(this), settings.scale, settings.translate),
                 parameters = {
-                    path: dataPath,
-                    context: context,
                     scale: settings.scale,
                     translate: settings.translate,
                     width: settings.width,
