@@ -64,7 +64,7 @@ The best way to start making maps with spam.js is reading the examples. You can 
 - [Zoomable choropleth](http://bl.ocks.org/martgnz/a61c2da0e45a108c857e)
 
 ## API
-Check the [API docs](https://github.com/lukasappelhans/spam.js/wiki) on the wiki for more information.
+Check the [API docs](https://github.com/lukasappelhans/spam.js/wiki/API) on the wiki for more information.
 
 ## License
 MIT © [newsapps.io](https://github.com/newsappsio).
