@@ -15,7 +15,7 @@ In order to get the most out of spam.js, we encourage you to think about which p
 ## Getting started
 spam.js depends on [D3](https://github.com/mbostock/d3), [rbush](https://github.com/mourner/rbush) and [TopoJSON](https://github.com/mbostock/topojson).
 
-Until PRs in [D3](https://github.com/mbostock/d3/pull/2784) and [TopoJSON](https://github.com/mbostock/topojson/pull/279) are merged, you'll need to use our own forks. We have included a copy of each dependency on the repo ([D3.js fork](https://github.com/lukasappelhans/d3), [TopoJSON fork](https://github.com/lukasappelhans/topojson)).
+Until PRs in [D3](https://github.com/mbostock/d3/pull/2784) and [TopoJSON](https://github.com/mbostock/topojson/pull/279) are merged, you'll need to use [our](https://github.com/lukasappelhans/d3) [forks](https://github.com/lukasappelhans/topojson). We have included a copy of each dependency on the repo.
 
 Clone the repository ([or download the zip](https://github.com/lukasappelhans/spam.js/archive/master.zip)) and include `spam.js` after D3, TopoJSON and rbush in your website.
 
