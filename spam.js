@@ -306,8 +306,11 @@ var ZoomableCanvasMap;
                 map: settings.map
             }
             var callback = function() {
+                var isDynamic = false
                 for (var i in settings.data) {
                     var element = settings.data[i]
+
+                    isDynamic = isDynamic || element.dynamic
 
                     if (element.dynamic && element.dynamic.postpaint)
                         element.dynamic.postpaint(parameters, null)
@@ -315,8 +318,9 @@ var ZoomableCanvasMap;
 
                 context.restore()
                 canvas.on("click", click)
-                    .on("mousemove", hover)
-                    .on("mouseleave", hoverLeave)
+
+                isDynamic && canvas.on("mousemove", hover)
+                                   .on("mouseleave", hoverLeave)
             }
 
             for (var i in settings.data) {
