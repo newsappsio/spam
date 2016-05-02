@@ -306,21 +306,23 @@ var ZoomableCanvasMap;
                 map: settings.map
             }
             var callback = function() {
-                var isDynamic = false
+                var hasHover = false,
+                    hasClick = false
                 for (var i in settings.data) {
                     var element = settings.data[i]
 
-                    isDynamic = isDynamic || element.dynamic
+                    hasHover = hasHover || (element.events && element.events.hover)
+                    hasClick = hasClick || (element.events && element.events.click)
 
                     if (element.dynamic && element.dynamic.postpaint)
                         element.dynamic.postpaint(parameters, null)
                 }
 
                 context.restore()
-                canvas.on("click", click)
 
-                isDynamic && canvas.on("mousemove", hover)
-                                   .on("mouseleave", hoverLeave)
+                hasClick && canvas.on("click", click)
+                hasHover && canvas.on("mousemove", hover)
+                                  .on("mouseleave", hoverLeave)
             }
 
             for (var i in settings.data) {
@@ -402,7 +404,7 @@ var ZoomableCanvasMap;
             }
             for (var i in settings.data) {
                 var element = settings.data[i]
-                if (!element.click)
+                if (!element.events || !element.events.click)
                     continue
 
                 var lookup = element.lookupTree.search([point[0], point[1], point[0], point[1]])
@@ -410,30 +412,49 @@ var ZoomableCanvasMap;
                 for (var j in lookup) {
                     var feature = lookup[j][4]
                     if (inside(settings.projection.invert(point), feature)) {
-                        element.click(parameters, feature)
+                        element.events.click(parameters, feature)
                         isInside = true
                     }
                 }
-                isInside || element.click(parameters, null)
+                isInside || element.events.click(parameters, null)
             }
         }
 
         function hoverLeave() {
+            var parameters = {
+                path: dataPath,
+                context: context,
+                scale: settings.scale,
+                translate: settings.translate,
+                width: settings.width,
+                height: settings.height,
+                map: settings.map
+            }
             for (var i in settings.data) {
                 var element = settings.data[i]
+                if (!element.events || !element.events.hover)
+                    continue
                 element.hoverElement = false
+                element.events.hover(parameters, null)
             }
-            paint()
         }
 
         function hover() {
             var point = translatePoint(d3.mouse(this), settings.scale, settings.translate),
-                repaint = false
+                parameters = {
+                    path: dataPath,
+                    context: context,
+                    scale: settings.scale,
+                    translate: settings.translate,
+                    width: settings.width,
+                    height: settings.height,
+                    map: settings.map
+                }
 
             for (var i in settings.data) {
                 var element = settings.data[i]
-                if (element.hoverElement &&
-                    inside(settings.projection.invert(point), element.hoverElement)) {
+                if (!element.events || !element.events.hover ||
+                    (element.hoverElement && inside(settings.projection.invert(point), element.hoverElement))) {
                     continue
                 }
                 element.hoverElement = false
@@ -445,9 +466,8 @@ var ZoomableCanvasMap;
                         break
                     }
                 }
-                repaint = true
+                element.events.hover(parameters, element.hoverElement)
             }
-            repaint && paint()
         }
 
         this.init = init

@@ -33,28 +33,22 @@
                     topojson.presimplify(d)
                     topojson.presimplify(roads)
 
-                    var clicked = []
+                    var hover = null
                     var map = new ZoomableCanvasMap({
                         element: ".js-map",
                         data: [{
                             features: topojson.feature(d, d.objects["provincias"]),
                             static: {
-                                prepaint: function(parameters) {
-
-                                },
                                 paintfeature: function(parameters, d) {
                                     if (d.properties.name[0] < "H")
                                         parameters.context.fillStyle = "blue"
                                     else
                                         parameters.context.fillStyle = "red"
                                     parameters.context.fill()
-                                },
-                                postpaint: function(parameters) {
-
-                                },
+                                }
                             },
                             dynamic: {
-                                postpaint: function(parameters, hover) {
+                                postpaint: function(parameters) {
                                     if (!hover)
                                         return
                                     parameters.context.beginPath()
@@ -63,8 +57,17 @@
                                     parameters.context.stroke()
                                 }
                             },
-                            click: function(parameters, d) { // TODO replace map with parameters?
-                                parameters.map.zoom(d)
+                            events: {
+                                click: function(parameters, d) { // TODO replace map with parameters?
+                                    console.log("CLICK")
+                                    parameters.map.zoom(d)
+                                },
+                                hover: function(parameters, d) {
+                                    if (d)
+                                        console.log("HOVER " + d.properties.name)
+                                    hover = d
+                                    parameters.map.paint()
+                                }
                             }
                         },
                         {
