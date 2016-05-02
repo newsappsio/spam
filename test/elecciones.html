@@ -51,30 +51,25 @@
                     console.log("Presimplify takes " + (end - start))
 
                     var creatingStart = performance.now()
-                    var selected = null
+                    var selected = null,
+                        hover = null
                     var map = new ZoomableCanvasMap({
                         element: ".js-map",
                         zoomScaleFactor: 0.1,
                         data: [{
                             features: topojson.feature(d, d.objects["municipios"]),
                             static: {
-                                prepaint: function(parameters) {
-
-                                },
                                 paintfeature: function(parameters, d) {
                                     if (d.properties.name[0] < "H")
                                         parameters.context.fillStyle = "blue"
                                     else
                                         parameters.context.fillStyle = "red"
                                     parameters.context.fill()
-                                },
-                                postpaint: function(parameters) {
-
                                 }
                             },
                             // TODO replace path with map?
                             dynamic: {
-                                postpaint: function(parameters, hover) {
+                                postpaint: function(parameters) {
                                     if (hover) {
                                         parameters.context.beginPath()
                                         parameters.context.lineWidth = 1 / parameters.scale
@@ -89,23 +84,23 @@
                                     }
                                 }
                             },
-                            click: function(parameters, d) { // TODO
-                                parameters.map.zoom(d)
-                                selected = d
+                            events: {
+                                click: function(parameters, d) { // TODO
+                                    parameters.map.zoom(d)
+                                    selected = d
+                                },
+                                hover: function(parameters, d) {
+                                    hover = d
+                                    parameters.map.paint()
+                                }
                             }
                         },
                         {
                             features: topojson.feature(roads, roads.objects["roads"]),
-                            prepaint: function(parameters) {
-
-                            },
                             paintfeature: function(parameters, d) {
                                 parameters.context.lineWidth = 1 / parameters.scale
                                 parameters.context.strokeStyle = "black"
                                 parameters.context.stroke()
-                            },
-                            postpaint: function(parameters) {
-
                             }
                         }]
                     })
