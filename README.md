@@ -1,7 +1,7 @@
 # spam
 spam.js is a small library to create modern [Canvas](https://developer.mozilla.org/en-US/docs/Web/API/Canvas_API) maps with [D3](https://github.com/mbostock/d3). It makes it easy to create static or zoomable maps with automatic centering and retina resolution. Custom projections, `d3.geo` path generators and multiple map features are also supported.
 
-Check the [API docs](wiki/API) or continue reading for [examples](#examples).
+Check the [API docs](https://github.com/lukasappelhans/spam.js/wiki/API) or continue reading for [examples](#examples).
 
 ## Introduction
 When using spam.js you are still in charge of painting everything. However the library creates the canvas boilerplate and tries to handle as much as possible without putting constraints on the user.
@@ -15,10 +15,7 @@ In order to get the most out of spam.js, we encourage you to think about which p
 ## Getting started
 spam.js depends on [D3](https://github.com/mbostock/d3), [rbush](https://github.com/mourner/rbush) and [TopoJSON](https://github.com/mbostock/topojson).
 
-Until PRs in [D3](https://github.com/mbostock/d3/pull/2784) and [TopoJSON](https://github.com/mbostock/topojson/pull/279) are merged, you'll need to use our own forks. We have included a copy of each on the repo in the `lib` folder.
-
-- [D3.js fork needed for spam.js](https://github.com/lukasappelhans/d3)
-- [TopoJSON fork needed for spam.js](https://github.com/lukasappelhans/topojson).
+Until PRs in [D3](https://github.com/mbostock/d3/pull/2784) and [TopoJSON](https://github.com/mbostock/topojson/pull/279) are merged, you'll need to use our own forks. We have included a copy of each on the repo in the `lib` folder ([D3.js fork needed for spam.js](https://github.com/lukasappelhans/d3), [TopoJSON fork needed for spam.js](https://github.com/lukasappelhans/topojson)).
 
 Clone the repository (or download the zip) and include `spam.js` after D3, TopoJSON and rbush in your website.
 
@@ -67,7 +64,7 @@ The best way to start making maps with spam.js is reading the examples. You can 
 - [Zoomable choropleth](http://bl.ocks.org/martgnz/a61c2da0e45a108c857e)
 
 ## API
-Check the [API docs](wiki/API) on the wiki for more information.
+Check the [API docs](https://github.com/lukasappelhans/spam.js/wiki) on the wiki for more information.
 
 ## License
 MIT © [newsapps.io](https://github.com/newsappsio).
