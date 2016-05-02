@@ -394,8 +394,6 @@ var ZoomableCanvasMap;
             var point = translatePoint(d3.mouse(this), settings.scale, settings.translate)
 
             var parameters = {
-                path: dataPath,
-                context: context,
                 scale: settings.scale,
                 translate: settings.translate,
                 width: settings.width,
@@ -550,7 +548,8 @@ var ZoomableCanvasMap;
             imageCache = new ImageCache({
                 width: settings.width,
                 height: settings.height
-            })
+            }),
+            busy = false
 
         settings.map = this
         settings.zoomScale = settings.zoomScale || 0.5
@@ -583,6 +582,10 @@ var ZoomableCanvasMap;
             map.paint()
         }
         function scaleZoom(scale, translate) {
+            if (busy) {
+                return
+            }
+            busy = true
             if (nearEqual(scale, settings.scale) &&
                 nearEqual(translate[0], settings.translate[0]) &&
                 nearEqual(translate[1], settings.translate[1])) {
@@ -680,6 +683,7 @@ var ZoomableCanvasMap;
                         // TODO use getImageData/putImageData, because it's faster?
                         background.src = canvas.node().toDataURL()
                     }
+                    busy = false
                 })
         }
         this.zoom = function(d) {
