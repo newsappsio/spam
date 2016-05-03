@@ -7,10 +7,10 @@
     <body>
         <div class="js-map"></div>
 
-        <script src="d3.js"></script>
-        <script src="topojson.js"></script>
+        <script src="../lib/d3.min.js"></script>
+        <script src="../lib/topojson.min.js"></script>
         <script src="rbush.js"></script>
-        <script src="../spam.js"></script>
+        <script src="../spam.min.js"></script>
         <script type='text/javascript'>
         /*
         {
@@ -72,10 +72,12 @@
                         },
                         {
                             features: topojson.feature(roads, roads.objects["roads"]),
-                            paintfeature: function(parameters, d) {
-                                parameters.context.lineWidth = 1 / parameters.scale
-                                parameters.context.strokeStyle = "black"
-                                parameters.context.stroke()
+                            static: {
+                                paintfeature: function(parameters, d) {
+                                    parameters.context.lineWidth = 1 / parameters.scale
+                                    parameters.context.strokeStyle = "black"
+                                    parameters.context.stroke()
+                                }
                             }
                         }]
                     })
