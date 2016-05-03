@@ -4,7 +4,7 @@ spam.js is a small library to create modern [Canvas](https://developer.mozilla.o
 
 Custom projections, click/hover events,`d3.geo` path generators and multiple map features are supported.
 
-Check the [API docs](https://github.com/lukasappelhans/spam.js/wiki/API) or continue reading for [examples](#examples).
+Check the [API docs](https://github.com/newsappsio/spam/wiki/API) or continue reading for [examples](#examples).
 
 ## Introduction
 When using spam.js you are still in charge of painting everything. However the library creates the canvas boilerplate and tries to handle as much as possible without putting constraints on the user.
@@ -20,7 +20,7 @@ spam.js depends on [D3](https://github.com/mbostock/d3), [TopoJSON](https://gith
 
 Until PRs in [D3](https://github.com/mbostock/d3/pull/2784) and [TopoJSON](https://github.com/mbostock/topojson/pull/279) are merged, you'll need to use [our](https://github.com/lukasappelhans/d3) [forks](https://github.com/lukasappelhans/topojson). We have included a copy of each fork on the repo.
 
-Clone the repository ([or download the zip](https://github.com/lukasappelhans/spam.js/archive/master.zip)) and include `spam.js` after D3, TopoJSON and rbush in your website.
+Clone the repository ([or download the zip](https://github.com/newsappsio/spam/releases/download/v1.0.0/spam.zip)) and include `spam.js` after D3, TopoJSON and rbush in your website.
 
 ````html
 <script src="lib/d3.min.js"></script>
@@ -67,7 +67,7 @@ The best way to start making maps with spam.js is reading the examples. You can 
 - [Zoomable choropleth](http://bl.ocks.org/martgnz/a61c2da0e45a108c857e)
 
 ## API
-Check the [API docs](https://github.com/lukasappelhans/spam.js/wiki/API) on the wiki for more information.
+Check the [API docs](https://github.com/newsappsio/spam/wiki/API) on the wiki for more information.
 
 ## License
 MIT © Lukas Appelhans, Martín González.
