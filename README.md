@@ -18,7 +18,7 @@ In order to get the most out of Spam, we encourage you to think about which part
 ## Getting started
 Spam depends on [D3](https://github.com/mbostock/d3), [TopoJSON](https://github.com/mbostock/topojson) and [rbush](https://github.com/mourner/rbush).
 
-Until PRs in [D3](https://github.com/mbostock/d3/pull/2784) and [TopoJSON](https://github.com/mbostock/topojson/pull/279) are merged, you'll need to use [our](https://github.com/lukasappelhans/d3) [forks](https://github.com/lukasappelhans/topojson). We have included a copy of each fork on the repo.
+You can install it using bower with `bower install spam`.
 
 Clone the repository ([or download the zip](https://github.com/newsappsio/spam/releases/download/v1.0.0/spam.zip)) and include `spam.js` after D3, TopoJSON and rbush in your website.
 

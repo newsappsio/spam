@@ -18,8 +18,14 @@
     "**/.*",
     "node_modules",
     "bower_components",
-    "test/",
     "test",
     "tests"
-  ]
+    "lib",
+    "scripts.sh"
+  ],
+  "dependencies": {
+    "rbush": "git@github.com:mourner/rbush.git#^1.4.2",
+    "d3": "^3.5.17",
+    "topojson": "^1.6.26"
+  }
 }
