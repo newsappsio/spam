@@ -703,5 +703,8 @@ var ZoomableCanvasMap;
 
             scaleZoom.call(this, scale, translate)
         }
+        this.settings = function(d){
+            return map.settings()
+        }
     }
 }()
