@@ -1,6 +1,3 @@
-var StaticCanvasMap;
-var ZoomableCanvasMap;
-
 ! function() {
     "use strict";
 
@@ -471,7 +468,7 @@ var ZoomableCanvasMap;
         }
     }
 
-    StaticCanvasMap = function(parameters) {
+    function StaticCanvasMap(parameters) {
         var map = new CanvasMap(parameters)
 
         this.init = function() {
@@ -529,7 +526,7 @@ var ZoomableCanvasMap;
         }
     }
 
-    ZoomableCanvasMap = function(parameters) {
+    function ZoomableCanvasMap(parameters) {
         var map = new CanvasMap(parameters),
             simplify = d3.geo.transform({
                 point: function(x, y, z) {
@@ -703,5 +700,14 @@ var ZoomableCanvasMap;
 
             scaleZoom.call(this, scale, translate)
         }
+    }
+    if (typeof module !== 'undefined') {
+        module.exports = {
+            StaticCanvasMap: StaticCanvasMap,
+            ZoomableCanvasMap: ZoomableCanvasMap
+        }
+    } else {
+        window.StaticCanvasMap = StaticCanvasMap
+        window.ZoomableCanvasMap = ZoomableCanvasMap
     }
 }()
