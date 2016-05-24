@@ -595,6 +595,7 @@ var ZoomableCanvasMap;
             if (scale == 1 && settings.scale == 1 &&
                 !translate[0] && !translate[1] &&
                 !settings.translate[0] && !settings.translate[1]) {
+                busy = false
                 return
             }
             area = 1 / settings.projection.scale() / scale / settings.ratio / 20
