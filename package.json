@@ -18,6 +18,7 @@
     "type": "git",
     "url": "https://github.com/newsappsio/spam.git"
   },
+  "license": "MIT",
   "dependencies": {
     "d3": "3.5.17",
     "rbush": "0.3.1",
