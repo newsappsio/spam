@@ -10,7 +10,7 @@
         <script src="../lib/d3.min.js"></script>
         <script src="../lib/topojson.min.js"></script>
         <script src="rbush.js"></script>
-        <script src="../spam.min.js"></script>
+        <script src="../spam.js"></script>
         <script type='text/javascript'>
         /*
         {
@@ -60,6 +60,7 @@
                             events: {
                                 click: function(parameters, d) { // TODO replace map with parameters?
                                     console.log("CLICK")
+                                    console.log(parameters)
                                     parameters.map.zoom(d)
                                 },
                                 hover: function(parameters, d) {
@@ -81,7 +82,9 @@
                             }
                         }]
                     })
+
                     map.init()
+                    console.log(map)
                 })
             })
         </script>

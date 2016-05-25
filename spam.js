@@ -303,7 +303,8 @@ var ZoomableCanvasMap;
                 translate: settings.translate,
                 width: settings.width,
                 height: settings.height,
-                map: settings.map
+                map: settings.map,
+                projection: settings.projection
             }
             var callback = function() {
                 var hasHover = false,
@@ -364,7 +365,8 @@ var ZoomableCanvasMap;
                 translate: settings.translate,
                 width: settings.width,
                 height: settings.height,
-                map: settings.map
+                map: settings.map,
+                projection: settings.projection
             }
 
             settings.area = 1 / settings.projection.scale() / settings.scale / settings.ratio / 25
@@ -398,7 +400,8 @@ var ZoomableCanvasMap;
                 translate: settings.translate,
                 width: settings.width,
                 height: settings.height,
-                map: settings.map
+                map: settings.map,
+                projection: settings.projection
             }
             for (var i in settings.data) {
                 var element = settings.data[i]
@@ -424,7 +427,8 @@ var ZoomableCanvasMap;
                 translate: settings.translate,
                 width: settings.width,
                 height: settings.height,
-                map: settings.map
+                map: settings.map,
+                projection: settings.projection
             }
             for (var i in settings.data) {
                 var element = settings.data[i]
@@ -611,7 +615,8 @@ var ZoomableCanvasMap;
                 translate: translate,
                 width: settings.width,
                 height: settings.height,
-                map: settings.map
+                map: settings.map,
+                projection: settings.projection
             }
 
             var image = imageCache.getImage({
@@ -703,9 +708,6 @@ var ZoomableCanvasMap;
                              -by + settings.height / scale / 2]
 
             scaleZoom.call(this, scale, translate)
-        }
-        this.settings = function(d){
-            return map.settings()
         }
     }
 }()
