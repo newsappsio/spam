@@ -274,7 +274,7 @@ var ZoomableCanvasMap;
                 context.oBackingStorePixelRatio ||
                 context.backingStorePixelRatio || 1
             settings.ratio = devicePixelRatio / backingStoreRatio
-            settings.area = 1 / settings.projection.scale() / settings.ratio / 20
+            settings.area = 1 / settings.projection.scale() / settings.ratio / 25
 
             canvas.attr("width", settings.width * settings.ratio)
             canvas.attr("height", settings.height * settings.ratio)
@@ -367,7 +367,7 @@ var ZoomableCanvasMap;
                 map: settings.map
             }
 
-            settings.area = 1 / settings.projection.scale() / settings.scale / settings.ratio / 20
+            settings.area = 1 / settings.projection.scale() / settings.scale / settings.ratio / 25
 
             for (var i in settings.data) {
                 var element = settings.data[i]
@@ -560,7 +560,7 @@ var ZoomableCanvasMap;
             canvas = d3.select(settings.element)
                 .append("canvas")
             context = canvas.node().getContext("2d")
-            area = 1 / settings.projection.scale() / settings.ratio / 20
+            area = 1 / settings.projection.scale() / settings.ratio / 25
 
             canvas.attr("width", settings.width * settings.ratio)
             canvas.attr("height", settings.height * settings.ratio)
@@ -598,7 +598,7 @@ var ZoomableCanvasMap;
                 busy = false
                 return
             }
-            area = 1 / settings.projection.scale() / scale / settings.ratio / 20
+            area = 1 / settings.projection.scale() / scale / settings.ratio / 25
 
             context.save()
             context.scale(scale * settings.ratio, scale * settings.ratio)
