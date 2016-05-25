@@ -1,0 +1,31 @@
+{
+  "name": "spam",
+  "main": "spam.js",
+  "homepage": "https://github.com/newsappsio/spam",
+  "authors": [
+    "Lukas Appelhans <lukas@appelhans.me>",
+    "Martín González <m@martingonzalez.net>"
+  ],
+  "description": "A D3 library to create maps with Canvas",
+  "keywords": [
+    "canvas",
+    "d3",
+    "maps",
+    "topojson"
+  ],
+  "license": "MIT",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+    "lib",
+    "scripts.sh"
+  ],
+  "dependencies": {
+    "rbush": "git@github.com:mourner/rbush.git#^1.4.2",
+    "d3": "^3.5.17",
+    "topojson": "^1.6.26"
+  }
+}
