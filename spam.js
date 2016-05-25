@@ -281,7 +281,7 @@
                 context.oBackingStorePixelRatio ||
                 context.backingStorePixelRatio || 1
             settings.ratio = devicePixelRatio / backingStoreRatio
-            settings.area = 1 / settings.projection.scale() / settings.ratio / 20
+            settings.area = 1 / settings.projection.scale() / settings.ratio / 25
 
             canvas.attr("width", settings.width * settings.ratio)
             canvas.attr("height", settings.height * settings.ratio)
@@ -310,7 +310,8 @@
                 translate: settings.translate,
                 width: settings.width,
                 height: settings.height,
-                map: settings.map
+                map: settings.map,
+                projection: settings.projection
             }
             var callback = function() {
                 var hasHover = false,
@@ -371,10 +372,11 @@
                 translate: settings.translate,
                 width: settings.width,
                 height: settings.height,
-                map: settings.map
+                map: settings.map,
+                projection: settings.projection
             }
 
-            settings.area = 1 / settings.projection.scale() / settings.scale / settings.ratio / 20
+            settings.area = 1 / settings.projection.scale() / settings.scale / settings.ratio / 25
 
             for (var i in settings.data) {
                 var element = settings.data[i]
@@ -405,7 +407,8 @@
                 translate: settings.translate,
                 width: settings.width,
                 height: settings.height,
-                map: settings.map
+                map: settings.map,
+                projection: settings.projection
             }
             for (var i in settings.data) {
                 var element = settings.data[i]
@@ -431,7 +434,8 @@
                 translate: settings.translate,
                 width: settings.width,
                 height: settings.height,
-                map: settings.map
+                map: settings.map,
+                projection: settings.projection
             }
             for (var i in settings.data) {
                 var element = settings.data[i]
@@ -567,7 +571,7 @@
             canvas = d3.select(settings.element)
                 .append("canvas")
             context = canvas.node().getContext("2d")
-            area = 1 / settings.projection.scale() / settings.ratio / 20
+            area = 1 / settings.projection.scale() / settings.ratio / 25
 
             canvas.attr("width", settings.width * settings.ratio)
             canvas.attr("height", settings.height * settings.ratio)
@@ -605,7 +609,7 @@
                 busy = false
                 return
             }
-            area = 1 / settings.projection.scale() / scale / settings.ratio / 20
+            area = 1 / settings.projection.scale() / scale / settings.ratio / 25
 
             context.save()
             context.scale(scale * settings.ratio, scale * settings.ratio)
@@ -618,7 +622,8 @@
                 translate: translate,
                 width: settings.width,
                 height: settings.height,
-                map: settings.map
+                map: settings.map,
+                projection: settings.projection
             }
 
             var image = imageCache.getImage({
@@ -710,9 +715,6 @@
                              -by + settings.height / scale / 2]
 
             scaleZoom.call(this, scale, translate)
-        }
-        this.settings = function(d){
-            return map.settings()
         }
     }
     if (typeof module !== 'undefined') {
