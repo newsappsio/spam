@@ -1,6 +1,20 @@
 ! function() {
     "use strict";
 
+    var d3
+    var topojson
+    var rbush
+
+    if (typeof module !== 'undefined') { 
+        d3 = require('d3')
+        topojson = require('topojson')
+        rbush = require('rbush')
+    } else {
+        d3 = window.d3
+        topojson = window.topojson
+        rbush = window.rbush
+    }
+
     // TODO use turf inside as a dependency?
     // Copied from turf.inside
     function inside(pt, polygon) {
