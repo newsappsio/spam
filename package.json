@@ -1,6 +1,6 @@
 {
   "name": "spam",
-  "version": "0.1.1",
+  "version": "1.1.0",
   "description": "A D3 library to create maps with Canvas",
   "keywords": [
     "canvas",
