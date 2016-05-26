@@ -21,10 +21,10 @@ Spam depends on [D3](https://github.com/mbostock/d3), [TopoJSON](https://github.
 Clone the repository ([or download the zip](https://github.com/newsappsio/spam/releases/download/v1.1.0/spam.zip)) and include `spam.js` after D3, TopoJSON and rbush in your website.
 
 ````html
-<script src="lib/d3.min.js"></script>
-<script src="lib/topojson.min.js"></script>
-<script src="rbush.min.js"></script>
-<script src="spam.js"></script>
+<script src="//d3js.org/d3.v3.min.js"></script>
+<script src="//d3js.org/topojson.v1.min.js"></script>
+<script src="//cdn.rawgit.com/mourner/rbush/master/rbush.js"></script>
+<script src="//cdn.rawgit.com/newsappsio/spam/master/spam.min.js"></script>
 ```
 
 Here's the most basic map you can do:
