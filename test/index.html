@@ -28,19 +28,21 @@
         }
         */
             // TODO queue.js
-            d3.json("map.json", function(error, d) {
+            d3.json("bcn.json", function(error, d) {
                 d3.json("roads.json", function(error, roads) {
                     topojson.presimplify(d)
                     topojson.presimplify(roads)
+                    console.log(topojson.feature(d, d.objects["seccio-censal"]))
 
                     var hover = null
                     var map = new ZoomableCanvasMap({
                         element: ".js-map",
+                        projection: null,
                         data: [{
-                            features: topojson.feature(d, d.objects["provincias"]),
+                            features: topojson.feature(d, d.objects["seccio-censal"]),
                             static: {
                                 paintfeature: function(parameters, d) {
-                                    if (d.properties.name[0] < "H")
+                                    if (d.properties.barri[0] < "H")
                                         parameters.context.fillStyle = "blue"
                                     else
                                         parameters.context.fillStyle = "red"
@@ -65,7 +67,7 @@
                                 },
                                 hover: function(parameters, d) {
                                     if (d)
-                                        console.log("HOVER " + d.properties.name)
+                                        console.log("HOVER " + d.properties.barri)
                                     hover = d
                                     parameters.map.paint()
                                 }

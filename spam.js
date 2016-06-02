@@ -229,7 +229,7 @@ var ZoomableCanvasMap;
             canvas = null,
             context = null
 
-        if (!parameters.projection) {
+        if (!parameters.hasOwnProperty("projection")) {
             var b = [[Infinity, Infinity],
                      [-Infinity, -Infinity]]
             for (var i in settings.data) {
@@ -241,7 +241,9 @@ var ZoomableCanvasMap;
         }
         var dataPath = d3.geo.path().projection({
             stream: function(s) {
-                return simplify.stream(settings.projection.stream(s))
+                if (settings.projection)
+                    return simplify.stream(settings.projection.stream(s))
+                return simplify.stream(s)
             }
         })
         var b = [[Infinity, Infinity],
@@ -253,7 +255,7 @@ var ZoomableCanvasMap;
         var dx = b[1][0] - b[0][0],
             dy = b[1][1] - b[0][1]
 
-        if (!parameters.projection) {
+        if (!parameters.hasOwnProperty("projection")) {
             settings.height = settings.height || Math.ceil(dy * settings.width / dx)
             settings.projection.scale(0.9 * (settings.width / dx))
                 .translate([settings.width / 2, settings.height / 2])
@@ -274,7 +276,9 @@ var ZoomableCanvasMap;
                 context.oBackingStorePixelRatio ||
                 context.backingStorePixelRatio || 1
             settings.ratio = devicePixelRatio / backingStoreRatio
-            settings.area = 1 / settings.projection.scale() / settings.ratio / 25
+            settings.area = 1 / settings.ratio / 25
+            if (settings.projection)
+                settings.area = settings.area / settings.projection.scale()
 
             canvas.attr("width", settings.width * settings.ratio)
             canvas.attr("height", settings.height * settings.ratio)
@@ -369,7 +373,10 @@ var ZoomableCanvasMap;
                 projection: settings.projection
             }
 
-            settings.area = 1 / settings.projection.scale() / settings.scale / settings.ratio / 25
+            // TODO test if the 25 is only needed with projection or not?
+            settings.area = 1 / settings.scale / settings.ratio / 25
+            if (settings.projection)
+                settings.area = settings.area / settings.projection.scale()
 
             for (var i in settings.data) {
                 var element = settings.data[i]
@@ -393,7 +400,8 @@ var ZoomableCanvasMap;
         }
 
         function click() {
-            var point = translatePoint(d3.mouse(this), settings.scale, settings.translate)
+            var point = translatePoint(d3.mouse(this), settings.scale, settings.translate),
+                topojsonPoint = settings.projection ? settings.projection.invert(point) : point
 
             var parameters = {
                 scale: settings.scale,
@@ -412,7 +420,7 @@ var ZoomableCanvasMap;
                 var isInside = false
                 for (var j in lookup) {
                     var feature = lookup[j][4]
-                    if (inside(settings.projection.invert(point), feature)) {
+                    if (inside(topojsonPoint, feature)) {
                         element.events.click(parameters, feature)
                         isInside = true
                     }
@@ -447,19 +455,20 @@ var ZoomableCanvasMap;
                     width: settings.width,
                     height: settings.height,
                     map: settings.map
-                }
+                },
+                topojsonPoint = settings.projection ? settings.projection.invert(point) : point
 
             for (var i in settings.data) {
                 var element = settings.data[i]
                 if (!element.events || !element.events.hover ||
-                    (element.hoverElement && inside(settings.projection.invert(point), element.hoverElement))) {
+                    (element.hoverElement && inside(topojsonPoint, element.hoverElement))) {
                     continue
                 }
                 element.hoverElement = false
                 var lookup = element.lookupTree.search([point[0], point[1], point[0], point[1]])
                 for (var j in lookup) {
                     var feature = lookup[j][4]
-                    if (inside(settings.projection.invert(point), feature)) {
+                    if (inside(topojsonPoint, feature)) {
                         element.hoverElement = feature
                         break
                     }
@@ -546,7 +555,9 @@ var ZoomableCanvasMap;
             settings = map.settings(),
             dataPath = d3.geo.path().projection({
                 stream: function(s) {
-                    return simplify.stream(settings.projection.stream(s))
+                    if (settings.projection)
+                        return simplify.stream(settings.projection.stream(s))
+                    return simplify.stream(s)
                 }
             }),
             imageCache = new ImageCache({
@@ -564,7 +575,9 @@ var ZoomableCanvasMap;
             canvas = d3.select(settings.element)
                 .append("canvas")
             context = canvas.node().getContext("2d")
-            area = 1 / settings.projection.scale() / settings.ratio / 25
+            area = 1 / settings.ratio / 25
+            if (settings.projection)
+                area = area / settings.projection.scale()
 
             canvas.attr("width", settings.width * settings.ratio)
             canvas.attr("height", settings.height * settings.ratio)
@@ -604,7 +617,9 @@ var ZoomableCanvasMap;
                 busy = false
                 return
             }
-            area = 1 / settings.projection.scale() / scale / settings.ratio / 25
+            area = 1 / scale / settings.ratio / 25
+            if (settings.projection)
+                area = area / settings.projection.scale()
 
             context.save()
             context.scale(scale * settings.ratio, scale * settings.ratio)
