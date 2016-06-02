@@ -77,6 +77,12 @@ var ZoomableCanvasMap;
         element.lookupTree.load(elements)
     }
 
+    function createRTrees(data, dataPath) {
+        for (var i in data) {
+            data[i].lookupTree || createRTree(data[i], dataPath)
+        }
+    }
+
     function paintFeature(element, feature, parameters) {
         parameters.context.beginPath()
         parameters.path(feature)
@@ -89,14 +95,8 @@ var ZoomableCanvasMap;
         if (element.static.prepaint)
             element.static.prepaint(parameters)
         if (element.static.paintfeature) {
-            var lookup = element.lookupTree.search([
-                parameters.translate[0],
-                parameters.translate[1],
-                parameters.width / parameters.scale - parameters.translate[0],
-                parameters.height / parameters.scale - parameters.translate[1]
-            ])
-            for (var j in lookup) {
-                paintFeature(element, lookup[j][4], parameters)
+            for (var j in element.features.features) {
+                paintFeature(element, element.features.features[j], parameters)
             }
         }
         if (element.static.postpaint)
@@ -288,9 +288,21 @@ var ZoomableCanvasMap;
             context.save()
             context.scale(settings.ratio, settings.ratio)
 
-            // TODO move rtree part out?
+            var hasHover = false,
+                hasClick = false
             for (var i in settings.data) {
-                createRTree(settings.data[i], dataPath)
+                var element = settings.data[i]
+
+                hasHover = hasHover || (element.events && element.events.hover)
+                hasClick = hasClick || (element.events && element.events.click)
+
+                if (element.dynamic && element.dynamic.postpaint)
+                    element.dynamic.postpaint(parameters, null)
+            }
+
+            // Only compute rtrees if we need it for event handling
+            if (hasHover || hasClick) {
+                createRTrees(settings.data, dataPath)
             }
 
             settings.background = new Image()
@@ -307,18 +319,6 @@ var ZoomableCanvasMap;
                 projection: settings.projection
             }
             var callback = function() {
-                var hasHover = false,
-                    hasClick = false
-                for (var i in settings.data) {
-                    var element = settings.data[i]
-
-                    hasHover = hasHover || (element.events && element.events.hover)
-                    hasClick = hasClick || (element.events && element.events.click)
-
-                    if (element.dynamic && element.dynamic.postpaint)
-                        element.dynamic.postpaint(parameters, null)
-                }
-
                 context.restore()
 
                 hasClick && canvas.on("click", click)
@@ -581,6 +581,8 @@ var ZoomableCanvasMap;
                 scale: settings.scale,
                 translate: settings.translate
             })
+
+            createRTrees(settings.data, dataPath)
         }
         this.paint = function() {
             map.paint()
