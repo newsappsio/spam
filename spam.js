@@ -213,6 +213,7 @@ var ZoomableCanvasMap;
                 ratio: 1,
                 area: 0,
                 scale: 1,
+                projectedScale: 1,
                 translate: [0, 0],
                 background: null,
                 backgroundScale: 1,
@@ -228,6 +229,8 @@ var ZoomableCanvasMap;
             }),
             canvas = null,
             context = null
+        console.log(settings.width)
+        console.log(d3.select(parameters.element).node().getBoundingClientRect().width)
 
         if (!parameters.hasOwnProperty("projection")) {
             var b = [[Infinity, Infinity],
@@ -251,16 +254,22 @@ var ZoomableCanvasMap;
         for (var i in settings.data) {
             b = maxBounds(b, dataPath.bounds(settings.data[i].features))
         }
+        console.log(b)
 
         var dx = b[1][0] - b[0][0],
             dy = b[1][1] - b[0][1]
+
+        if (!settings.projection) {
+            settings.projectedScale = settings.width / dx
+            console.log(settings.projectedScale)
+        }
 
         if (!parameters.hasOwnProperty("projection")) {
             settings.height = settings.height || Math.ceil(dy * settings.width / dx)
             settings.projection.scale(0.9 * (settings.width / dx))
                 .translate([settings.width / 2, settings.height / 2])
         } else if (!settings.height) {
-            settings.height = Math.ceil(dy * 1 / 0.9)
+            settings.height = Math.ceil(dy * 1 / 0.9) * settings.projectedScale
         }
         d3.select(settings.parameters).attr("height", settings.height)
 
@@ -290,7 +299,7 @@ var ZoomableCanvasMap;
             dataPath.context(context)
             context.clearRect(0, 0, settings.width * settings.ratio, settings.height * settings.ratio)
             context.save()
-            context.scale(settings.ratio, settings.ratio)
+            context.scale(settings.ratio * settings.projectedScale, settings.ratio * settings.projectedScale)
 
             var hasHover = false,
                 hasClick = false
@@ -399,7 +408,7 @@ var ZoomableCanvasMap;
         }
 
         function click() {
-            var point = translatePoint(d3.mouse(this), settings.scale, settings.translate),
+            var point = translatePoint(d3.mouse(this), settings.scale * settings.projectedScale, settings.translate),
                 topojsonPoint = settings.projection ? settings.projection.invert(point) : point
 
             var parameters = {
@@ -690,6 +699,7 @@ var ZoomableCanvasMap;
                         map.paint()
                         partialPainter.finish()
                         background.onload = function() {
+                            console.log("Loaded new bg")
                             context.restore()
                             imageCache.addImage({
                                 image: background,

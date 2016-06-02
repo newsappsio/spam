@@ -2,6 +2,9 @@
 <html lang="es-ES">
     <head>
         <style>
+            .js-map {
+                width: 400px;
+            }
         </style>
     </head>
     <body>
@@ -32,7 +35,7 @@
                 d3.json("roads.json", function(error, roads) {
                     topojson.presimplify(d)
                     topojson.presimplify(roads)
-                    console.log(topojson.feature(d, d.objects["seccio-censal"]))
+                    console.log(d3.select(".js-map").node().getBoundingClientRect().width)
 
                     var hover = null
                     var map = new ZoomableCanvasMap({
