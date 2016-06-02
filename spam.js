@@ -276,9 +276,9 @@ var ZoomableCanvasMap;
                 context.oBackingStorePixelRatio ||
                 context.backingStorePixelRatio || 1
             settings.ratio = devicePixelRatio / backingStoreRatio
-            settings.area = 1 / settings.ratio / 25
+            settings.area = 1 / settings.ratio
             if (settings.projection)
-                settings.area = settings.area / settings.projection.scale()
+                settings.area = settings.area / settings.projection.scale() / 25
 
             canvas.attr("width", settings.width * settings.ratio)
             canvas.attr("height", settings.height * settings.ratio)
@@ -373,10 +373,9 @@ var ZoomableCanvasMap;
                 projection: settings.projection
             }
 
-            // TODO test if the 25 is only needed with projection or not?
-            settings.area = 1 / settings.scale / settings.ratio / 25
+            settings.area = 1 / settings.scale / settings.ratio
             if (settings.projection)
-                settings.area = settings.area / settings.projection.scale()
+                settings.area = settings.area / settings.projection.scale() / 25
 
             for (var i in settings.data) {
                 var element = settings.data[i]
@@ -575,9 +574,9 @@ var ZoomableCanvasMap;
             canvas = d3.select(settings.element)
                 .append("canvas")
             context = canvas.node().getContext("2d")
-            area = 1 / settings.ratio / 25
+            area = 1 / settings.ratio
             if (settings.projection)
-                area = area / settings.projection.scale()
+                area = area / settings.projection.scale() / 25
 
             canvas.attr("width", settings.width * settings.ratio)
             canvas.attr("height", settings.height * settings.ratio)
@@ -617,9 +616,9 @@ var ZoomableCanvasMap;
                 busy = false
                 return
             }
-            area = 1 / scale / settings.ratio / 25
+            area = 1 / scale / settings.ratio
             if (settings.projection)
-                area = area / settings.projection.scale()
+                area = area / settings.projection.scale() / 25
 
             context.save()
             context.scale(scale * settings.ratio, scale * settings.ratio)
