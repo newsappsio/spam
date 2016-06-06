@@ -130,8 +130,8 @@ var ZoomableCanvasMap;
                 currentLookup = element.lookupTree.search([
                     - parameters.translate[0],
                     - parameters.translate[1],
-                    parameters.width / parameters.scale - parameters.translate[0],
-                    parameters.height / parameters.scale - parameters.translate[1]
+                    parameters.width / parameters.scale / parameters.projectedScale - parameters.translate[0],
+                    parameters.height / parameters.scale / parameters.projectedScale - parameters.translate[1]
                 ])
                 j = 0
                 ++index
@@ -466,8 +466,6 @@ var ZoomableCanvasMap;
                 },
                 topojsonPoint = settings.projection ? settings.projection.invert(point) : point
 
-            console.log(point)
-
             for (var i in settings.data) {
                 var element = settings.data[i]
                 if (!element.events || !element.events.hover ||
@@ -589,6 +587,7 @@ var ZoomableCanvasMap;
             if (settings.projection)
                 area = area / settings.projection.scale() / 25
 
+            console.log(settings.projectedScale)
             canvas.attr("width", settings.width * settings.ratio / settings.projectedScale)
             canvas.attr("height", settings.height * settings.ratio / settings.projectedScale)
             canvas.style("width", settings.width + "px")
@@ -639,6 +638,7 @@ var ZoomableCanvasMap;
                 path: dataPath,
                 context: context,
                 scale: scale,
+                projectedScale: settings.projectedScale,
                 translate: translate,
                 width: settings.width,
                 height: settings.height,
@@ -730,10 +730,10 @@ var ZoomableCanvasMap;
                 dy = bounds[1][1] - bounds[0][1],
                 bx = (bounds[0][0] + bounds[1][0]) / 2,
                 by = (bounds[0][1] + bounds[1][1]) / 2,
-                scale = settings.zoomScale *
+                scale = settings.zoomScale / settings.projectedScale *
                     Math.min(settings.width / dx, settings.height / dy),
-                translate = [-bx + settings.width / scale / 2,
-                             -by + settings.height / scale / 2]
+                translate = [-bx + settings.width / settings.projectedScale / scale / 2,
+                             -by + settings.height / settings.projectedScale / scale / 2]
 
             scaleZoom.call(this, scale, translate)
         }
