@@ -289,8 +289,8 @@ var ZoomableCanvasMap;
             if (settings.projection)
                 settings.area = settings.area / settings.projection.scale() / 25
 
-            canvas.attr("width", settings.width * settings.ratio)
-            canvas.attr("height", settings.height * settings.ratio)
+            canvas.attr("width", settings.width / settings.projectedScale * settings.ratio)
+            canvas.attr("height", settings.height / settings.projectedScale * settings.ratio)
             canvas.style("width", settings.width + "px")
             canvas.style("height", settings.height + "px")
             context.lineJoin = "round"
@@ -299,7 +299,7 @@ var ZoomableCanvasMap;
             dataPath.context(context)
             context.clearRect(0, 0, settings.width * settings.ratio, settings.height * settings.ratio)
             context.save()
-            context.scale(settings.ratio * settings.projectedScale, settings.ratio * settings.projectedScale)
+            context.scale(settings.ratio, settings.ratio)
 
             var hasHover = false,
                 hasClick = false
@@ -365,8 +365,8 @@ var ZoomableCanvasMap;
             context.clearRect(- settings.translate[0], - settings.translate[1], settings.width * settings.ratio, settings.height * settings.ratio)
 
             context.rect(- settings.translate[0], - settings.translate[1],
-                settings.width / settings.scale,
-                settings.height / settings.scale)
+                settings.width / settings.scale / settings.projectedScale,
+                settings.height / settings.scale / settings.projectedScale)
             context.clip()
 
 
@@ -393,10 +393,10 @@ var ZoomableCanvasMap;
             }
 
             context.drawImage(settings.background, 0, 0,
-                settings.width * settings.ratio, settings.height * settings.ratio,
+                settings.width * settings.ratio / settings.projectedScale, settings.height * settings.ratio / settings.projectedScale,
                 - settings.backgroundTranslate[0],
                 - settings.backgroundTranslate[1],
-                settings.width / settings.backgroundScale, settings.height / settings.backgroundScale)
+                settings.width / settings.backgroundScale / settings.projectedScale, settings.height / settings.backgroundScale / settings.projectedScale)
 
             for (var i in settings.data) {
                 var element = settings.data[i]
@@ -456,7 +456,7 @@ var ZoomableCanvasMap;
         }
 
         function hover() {
-            var point = translatePoint(d3.mouse(this), settings.scale, settings.translate),
+            var point = translatePoint(d3.mouse(this), settings.scale * settings.projectedScale, settings.translate),
                 parameters = {
                     scale: settings.scale,
                     translate: settings.translate,
@@ -465,6 +465,8 @@ var ZoomableCanvasMap;
                     map: settings.map
                 },
                 topojsonPoint = settings.projection ? settings.projection.invert(point) : point
+
+            console.log(point)
 
             for (var i in settings.data) {
                 var element = settings.data[i]
@@ -587,8 +589,8 @@ var ZoomableCanvasMap;
             if (settings.projection)
                 area = area / settings.projection.scale() / 25
 
-            canvas.attr("width", settings.width * settings.ratio)
-            canvas.attr("height", settings.height * settings.ratio)
+            canvas.attr("width", settings.width * settings.ratio / settings.projectedScale)
+            canvas.attr("height", settings.height * settings.ratio / settings.projectedScale)
             canvas.style("width", settings.width + "px")
             canvas.style("height", settings.height + "px")
             canvas.style("display", "none")
