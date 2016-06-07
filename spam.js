@@ -229,8 +229,6 @@ var ZoomableCanvasMap;
             }),
             canvas = null,
             context = null
-        console.log(settings.width)
-        console.log(d3.select(parameters.element).node().getBoundingClientRect().width)
 
         if (!parameters.hasOwnProperty("projection")) {
             var b = [[Infinity, Infinity],
@@ -254,14 +252,12 @@ var ZoomableCanvasMap;
         for (var i in settings.data) {
             b = maxBounds(b, dataPath.bounds(settings.data[i].features))
         }
-        console.log(b)
 
         var dx = b[1][0] - b[0][0],
             dy = b[1][1] - b[0][1]
 
         if (!settings.projection) {
             settings.projectedScale = settings.width / dx
-            console.log(settings.projectedScale)
         }
 
         if (!parameters.hasOwnProperty("projection")) {
@@ -285,7 +281,7 @@ var ZoomableCanvasMap;
                 context.oBackingStorePixelRatio ||
                 context.backingStorePixelRatio || 1
             settings.ratio = devicePixelRatio / backingStoreRatio
-            settings.area = 1 / settings.ratio
+            settings.area = 1 / settings.ratio / settings.projectedScale
             if (settings.projection)
                 settings.area = settings.area / settings.projection.scale() / 25
 
@@ -382,7 +378,7 @@ var ZoomableCanvasMap;
                 projection: settings.projection
             }
 
-            settings.area = 1 / settings.scale / settings.ratio
+            settings.area = 1 / settings.scale / settings.ratio / settings.projectedScale
             if (settings.projection)
                 settings.area = settings.area / settings.projection.scale() / 25
 
@@ -587,7 +583,6 @@ var ZoomableCanvasMap;
             if (settings.projection)
                 area = area / settings.projection.scale() / 25
 
-            console.log(settings.projectedScale)
             canvas.attr("width", settings.width * settings.ratio / settings.projectedScale)
             canvas.attr("height", settings.height * settings.ratio / settings.projectedScale)
             canvas.style("width", settings.width + "px")
