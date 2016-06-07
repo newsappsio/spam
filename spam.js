@@ -135,7 +135,6 @@ var ZoomableCanvasMap;
                     parameters.height / parameters.scale / parameters.projectedScale - parameters.translate[1]
                 ])
                 j = 0
-                ++index
             }
             if (element.static.paintfeature) {
                 for (; j != currentLookup.length; ++j) {
@@ -152,29 +151,30 @@ var ZoomableCanvasMap;
             }
         }
         this.finish = function() {
-            if (index >= data.length && j >= currentLookup.length)
-                return
-            if (j < currentLookup.length)
-                index--
-            for (; index != data.length; ++index) {
-                if (j >= currentLookup.length) {
-                    while (!data[index].static && index < data.length) {
-                        index++
+            if (j < currentLookup.length) {
+                if (element.static.paintfeature) {
+                    for (; j != currentLookup.length; ++j) {
+                        var feature = currentLookup[j][4]
+                        paintFeature(element, feature, parameters)
                     }
-                    if (index >= data.length)
-                        return
-                    element = data[index]
-
-                    if (element.static.prepaint)
-                        element.static.prepaint(parameters)
-                    currentLookup = element.lookupTree.search([
-                        - parameters.translate[0],
-                        - parameters.translate[1],
-                        parameters.width / parameters.scale - parameters.translate[0],
-                        parameters.height / parameters.scale - parameters.translate[1]
-                    ])
-                    j = 0
                 }
+                if (element.static.postpaint)
+                    element.static.postpaint(parameters)
+            }
+            for (; index < data.length; index++) {
+                if (!data[index].static)
+                    continue
+                element = data[index]
+
+                if (element.static.prepaint)
+                    element.static.prepaint(parameters)
+                currentLookup = element.lookupTree.search([
+                    - parameters.translate[0],
+                    - parameters.translate[1],
+                    parameters.width / parameters.scale - parameters.translate[0],
+                    parameters.height / parameters.scale - parameters.translate[1]
+                ])
+                j = 0
                 if (element.static.paintfeature) {
                     for (; j != currentLookup.length; ++j) {
                         var feature = currentLookup[j][4]
