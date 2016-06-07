@@ -107,8 +107,13 @@ var ZoomableCanvasMap;
     function PartialPainter(data, parameters) {
         var index = 0,
             j = 0,
-            element = null,
-            currentLookup = []
+            element = data[index],
+            currentLookup = element.lookupTree.search([
+                - parameters.translate[0],
+                - parameters.translate[1],
+                parameters.width / parameters.scale / parameters.projectedScale - parameters.translate[0],
+                parameters.height / parameters.scale / parameters.projectedScale - parameters.translate[1]
+            ])
 
         this.hasNext = function() {
             return index <= data.length && j < currentLookup.length
@@ -117,7 +122,7 @@ var ZoomableCanvasMap;
             if (index >= data.length && j >= currentLookup.length)
                 return
             var start = performance.now()
-            if (!element || j >= currentLookup.length) {
+            if (j >= currentLookup.length) {
                 index++
                 while (index < data.length && !data[index].static) {
                     index++
