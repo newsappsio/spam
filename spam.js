@@ -103,6 +103,7 @@ var ZoomableCanvasMap;
             element.static.postpaint(parameters)
     }
 
+    // FIXME refactor and prettify
     function PartialPainter(data, parameters) {
         var index = 0,
             j = 0,
@@ -304,9 +305,6 @@ var ZoomableCanvasMap;
 
                 hasHover = hasHover || (element.events && element.events.hover)
                 hasClick = hasClick || (element.events && element.events.click)
-
-                if (element.dynamic && element.dynamic.postpaint)
-                    element.dynamic.postpaint(parameters, null)
             }
 
             // Only compute rtrees if we need it for event handling
@@ -333,16 +331,23 @@ var ZoomableCanvasMap;
                 hasClick && canvas.on("click", click)
                 hasHover && canvas.on("mousemove", hover)
                                   .on("mouseleave", hoverLeave)
+
+                paint()
             }
 
             for (var i in settings.data) {
                 var element = settings.data[i]
-                if (element.dynamic && element.dynamic.prepaint)
-                    element.dynamic.prepaint(parameters, element.hoverElement)
+                if (element.static && element.static.prepaint)
+                    element.static.prepaint(parameters)
             }
             for (var i in settings.data) {
                 var element = settings.data[i]
                 paintBackgroundElement(element, parameters)
+            }
+            for (var i in settings.data) {
+                var element = settings.data[i]
+                if (element.static && element.static.postpaint)
+                    element.static.postpaint(parameters)
             }
             settings.background.onload = callback
             settings.background.src = canvas.node().toDataURL()
