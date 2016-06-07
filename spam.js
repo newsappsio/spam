@@ -578,10 +578,9 @@ var ZoomableCanvasMap;
         this.init = function() {
             map.init()
 
-            canvas = d3.select(settings.element)
-                .append("canvas")
+            canvas = d3.select(settings.element).append("canvas")
             context = canvas.node().getContext("2d")
-            area = 1 / settings.ratio
+            area = 1 / settings.ratio / settings.projectedScale
             if (settings.projection)
                 area = area / settings.projection.scale() / 25
 
@@ -623,7 +622,7 @@ var ZoomableCanvasMap;
                 busy = false
                 return
             }
-            area = 1 / scale / settings.ratio
+            area = 1 / scale / settings.ratio / settings.projectedScale
             if (settings.projection)
                 area = area / settings.projection.scale() / 25
 
