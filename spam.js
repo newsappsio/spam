@@ -696,7 +696,6 @@ var ZoomableCanvasMap;
                         map.paint()
                         partialPainter.finish()
                         background.onload = function() {
-                            console.log("Loaded new bg")
                             context.restore()
                             imageCache.addImage({
                                 image: background,
