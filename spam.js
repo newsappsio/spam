@@ -356,8 +356,6 @@ var ZoomableCanvasMap;
             this.init = function() {}
         }
 
-        // TODO probably try to use the same data path in the zoom class, but have a different area settable?
-
         function paint() {
             context.save()
             context.scale(settings.scale * settings.ratio, settings.scale * settings.ratio)
@@ -369,7 +367,6 @@ var ZoomableCanvasMap;
                 settings.width / settings.scale / settings.projectedScale,
                 settings.height / settings.scale / settings.projectedScale)
             context.clip()
-
 
             // FIXME this needs a way for the callback to use the lookupTree?
             var parameters = {
@@ -425,8 +422,8 @@ var ZoomableCanvasMap;
                 if (!element.events || !element.events.click)
                     continue
 
-                var lookup = element.lookupTree.search([point[0], point[1], point[0], point[1]])
-                var isInside = false
+                var lookup = element.lookupTree.search([point[0], point[1], point[0], point[1]]),
+                    isInside = false
                 for (var j in lookup) {
                     var feature = lookup[j][4]
                     if (inside(topojsonPoint, feature)) {
