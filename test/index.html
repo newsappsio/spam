@@ -40,7 +40,7 @@
                     var hover = null
                     var map = new ZoomableCanvasMap({
                         element: ".js-map",
-                        projection: null,
+                        projection: null, // TODO how to automagically detect this?
                         data: [{
                             features: topojson.feature(d, d.objects["seccio-censal"]),
                             static: {
