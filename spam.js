@@ -118,6 +118,7 @@ var ZoomableCanvasMap;
                 return
             var start = performance.now()
             if (!element || j >= currentLookup.length) {
+                index++
                 while (index < data.length && !data[index].static) {
                     index++
                 }
