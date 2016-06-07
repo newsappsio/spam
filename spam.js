@@ -332,7 +332,7 @@ var ZoomableCanvasMap;
                 hasHover && canvas.on("mousemove", hover)
                                   .on("mouseleave", hoverLeave)
 
-                paint()
+                paint() // For dynamic paints
             }
 
             for (var i in settings.data) {
