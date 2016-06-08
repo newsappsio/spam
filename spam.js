@@ -115,6 +115,10 @@ var ZoomableCanvasMap;
                 parameters.height / parameters.scale / parameters.projectedScale - parameters.translate[1]
             ])
 
+        // TODO FIX ALL THIS
+        if (element.static.prepaint)
+            element.static.prepaint(parameters)
+
         this.hasNext = function() {
             return index <= data.length && j < currentLookup.length
         }
@@ -130,9 +134,6 @@ var ZoomableCanvasMap;
                 if (index >= data.length)
                     return
                 element = data[index]
-
-                if (element.static.prepaint)
-                    element.static.prepaint(parameters)
 
                 currentLookup = element.lookupTree.search([
                     - parameters.translate[0],
