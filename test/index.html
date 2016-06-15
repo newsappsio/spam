@@ -31,10 +31,11 @@
         }
         */
             // TODO queue.js
-            d3.json("bcn.json", function(error, d) {
+            d3.json("spain.json", function(error, d) {
                 d3.json("roads.json", function(error, roads) {
                     topojson.presimplify(d)
                     topojson.presimplify(roads)
+                    console.log(d)
                     console.log(d3.select(".js-map").node().getBoundingClientRect().width)
 
                     var hover = null
@@ -42,12 +43,13 @@
                         element: ".js-map",
                         projection: null, // TODO how to automagically detect this?
                         data: [{
-                            features: topojson.feature(d, d.objects["seccio-censal"]),
+                            features: topojson.feature(d, d.objects["municipios"]),
                             static: {
                                 paintfeature: function(parameters, d) {
-                                    if (d.properties.barri[0] < "H")
+                                    //console.log(d)
+                                    /*if (d.properties.name[0] < "H")
                                         parameters.context.fillStyle = "blue"
-                                    else
+                                    else*/
                                         parameters.context.fillStyle = "red"
                                     parameters.context.fill()
                                 }
@@ -57,7 +59,7 @@
                                     if (!hover)
                                         return
                                     parameters.context.beginPath()
-                                    parameters.context.lineWidth = 1 / parameters.scale
+                                    parameters.context.lineWidth = 1 / parameters.scale / parameters.projectedScale
                                     parameters.path(hover)
                                     parameters.context.stroke()
                                 }
@@ -69,13 +71,11 @@
                                     parameters.map.zoom(d)
                                 },
                                 hover: function(parameters, d) {
-                                    if (d)
-                                        console.log("HOVER " + d.properties.barri)
                                     hover = d
                                     parameters.map.paint()
                                 }
                             }
-                        },
+                        }/*,
                         {
                             features: topojson.feature(roads, roads.objects["roads"]),
                             static: {
@@ -85,7 +85,7 @@
                                     parameters.context.stroke()
                                 }
                             }
-                        }]
+                        }*/]
                     })
 
                     map.init()

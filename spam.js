@@ -288,7 +288,7 @@ var ZoomableCanvasMap;
                 context.msBackingStorePixelRatio ||
                 context.oBackingStorePixelRatio ||
                 context.backingStorePixelRatio || 1
-            settings.ratio = devicePixelRatio / backingStoreRatio
+            settings.ratio = devicePixelRatio / backingStoreRatio * settings.projectedScale
             settings.area = 1 / settings.ratio / settings.projectedScale
             if (settings.projection)
                 settings.area = settings.area / settings.projection.scale() / 25
@@ -330,7 +330,8 @@ var ZoomableCanvasMap;
                 width: settings.width,
                 height: settings.height,
                 map: settings.map,
-                projection: settings.projection
+                projection: settings.projection,
+                projectedScale: settings.projectedScale
             }
             var callback = function() {
                 context.restore()
@@ -368,7 +369,7 @@ var ZoomableCanvasMap;
             context.scale(settings.scale * settings.ratio, settings.scale * settings.ratio)
             context.translate(settings.translate[0], settings.translate[1])
 
-            context.clearRect(- settings.translate[0], - settings.translate[1], settings.width * settings.ratio, settings.height * settings.ratio)
+            context.clearRect(- settings.translate[0], - settings.translate[1], settings.width * settings.ratio / settings.projectedScale, settings.height * settings.ratio / settings.projectedScale)
 
             context.rect(- settings.translate[0], - settings.translate[1],
                 settings.width / settings.scale / settings.projectedScale,
@@ -384,7 +385,8 @@ var ZoomableCanvasMap;
                 width: settings.width,
                 height: settings.height,
                 map: settings.map,
-                projection: settings.projection
+                projection: settings.projection,
+                projectedScale: settings.projectedScale
             }
 
             settings.area = 1 / settings.scale / settings.ratio / settings.projectedScale
@@ -422,7 +424,8 @@ var ZoomableCanvasMap;
                 width: settings.width,
                 height: settings.height,
                 map: settings.map,
-                projection: settings.projection
+                projection: settings.projection,
+                projectedScale: settings.projectedScale
             }
             for (var i in settings.data) {
                 var element = settings.data[i]
@@ -449,7 +452,8 @@ var ZoomableCanvasMap;
                 width: settings.width,
                 height: settings.height,
                 map: settings.map,
-                projection: settings.projection
+                projection: settings.projection,
+                projectedScale: settings.projectedScale
             }
             for (var i in settings.data) {
                 var element = settings.data[i]
@@ -646,7 +650,8 @@ var ZoomableCanvasMap;
                 width: settings.width,
                 height: settings.height,
                 map: settings.map,
-                projection: settings.projection
+                projection: settings.projection,
+                projectedScale: settings.projectedScale
             }
 
             var image = imageCache.getImage({
