@@ -115,10 +115,6 @@ var ZoomableCanvasMap;
                 parameters.height / parameters.scale / parameters.projectedScale - parameters.translate[1]
             ])
 
-        // TODO FIX ALL THIS
-        if (element.static.prepaint)
-            element.static.prepaint(parameters)
-
         this.hasNext = function() {
             return index <= data.length && j < currentLookup.length
         }
@@ -143,6 +139,10 @@ var ZoomableCanvasMap;
                 ])
                 j = 0
             }
+
+            if (j == 0 && element.static.prepaint)
+                element.static.prepaint(parameters)
+
             if (element.static.paintfeature) {
                 for (; j != currentLookup.length; ++j) {
                     var feature = currentLookup[j][4]
@@ -345,17 +345,7 @@ var ZoomableCanvasMap;
 
             for (var i in settings.data) {
                 var element = settings.data[i]
-                if (element.static && element.static.prepaint)
-                    element.static.prepaint(parameters)
-            }
-            for (var i in settings.data) {
-                var element = settings.data[i]
                 paintBackgroundElement(element, parameters)
-            }
-            for (var i in settings.data) {
-                var element = settings.data[i]
-                if (element.static && element.static.postpaint)
-                    element.static.postpaint(parameters)
             }
             settings.background.onload = callback
             settings.background.src = canvas.node().toDataURL()

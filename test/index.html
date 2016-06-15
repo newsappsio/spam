@@ -45,6 +45,9 @@
                         data: [{
                             features: topojson.feature(d, d.objects["municipios"]),
                             static: {
+                                prepaint: function(parameters) {
+                                    console.log("PRE")
+                                },
                                 paintfeature: function(parameters, d) {
                                     //console.log(d)
                                     /*if (d.properties.name[0] < "H")
