@@ -92,15 +92,13 @@ var ZoomableCanvasMap;
     function paintBackgroundElement(element, parameters) {
         if (!element.static)
             return
-        if (element.static.prepaint)
-            element.static.prepaint(parameters)
+        element.static.prepaint && element.static.prepaint(parameters)
         if (element.static.paintfeature) {
             for (var j in element.features.features) {
                 paintFeature(element, element.features.features[j], parameters)
             }
         }
-        if (element.static.postpaint)
-            element.static.postpaint(parameters)
+        element.static.postpaint && element.static.postpaint(parameters)
     }
 
     // FIXME refactor and prettify
@@ -170,20 +168,17 @@ var ZoomableCanvasMap;
                         paintFeature(element, feature, parameters)
                     }
                 }
-                if (element.static.postpaint)
-                    element.static.postpaint(parameters)
+                element.static.postpaint && element.static.postpaint(parameters)
             }
             while (selectNextIndex()) {
-                if (element.static.prepaint)
-                    element.static.prepaint(parameters)
+                element.static.prepaint && element.static.prepaint(parameters)
                 if (element.static.paintfeature) {
                     for (; j != currentLookup.length; ++j) {
                         var feature = currentLookup[j][4]
                         paintFeature(element, feature, parameters)
                     }
                 }
-                if (element.static.postpaint)
-                    element.static.postpaint(parameters)
+                element.static.postpaint && element.static.postpaint(parameters)
             }
         }
     }
