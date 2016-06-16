@@ -121,7 +121,6 @@ var ZoomableCanvasMap;
             if (index >= data.length)
                 return false
             element = data[index]
-
             currentLookup = element.lookupTree.search([
                 - parameters.translate[0],
                 - parameters.translate[1],
@@ -139,26 +138,18 @@ var ZoomableCanvasMap;
             if (!this.hasNext())
                 return
             var start = performance.now()
-            if (j >= currentLookup.length) {
-                selectNextIndex()
-            }
+            j >= currentLookup.length && selectNextIndex()
 
-            if (j == 0 && element.static.prepaint)
-                element.static.prepaint(parameters)
+            !j && element.static.prepaint && element.static.prepaint(parameters)
 
-            if (element.static.paintfeature) {
-                for (; j != currentLookup.length; ++j) {
-                    var feature = currentLookup[j][4]
-                    paintFeature(element, feature, parameters)
-                    if ((performance.now() - start) > 10)
-                        break
-                }
-            } else {
-                j = currentLookup.length
+            !element.static.paintfeature && (j = currentLookup.length)
+
+            for (; j != currentLookup.length; ++j) {
+                paintFeature(element, currentLookup[j][4], parameters)
+                if ((performance.now() - start) > 10)
+                    return
             }
-            if (j == currentLookup.length && element.static.postpaint) {
-                element.static.postpaint(parameters)
-            }
+            element.static.postpaint && element.static.postpaint(parameters)
         }
         this.finish = function() {
             if (j < currentLookup.length) {
