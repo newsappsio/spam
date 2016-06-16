@@ -264,12 +264,13 @@ var ZoomableCanvasMap;
 
             var devicePixelRatio = window.devicePixelRatio || 1,
                 backingStoreRatio = context.webkitBackingStorePixelRatio ||
-                context.mozBackingStorePixelRatio ||
-                context.msBackingStorePixelRatio ||
-                context.oBackingStorePixelRatio ||
-                context.backingStorePixelRatio || 1
+                                    context.mozBackingStorePixelRatio ||
+                                    context.msBackingStorePixelRatio ||
+                                    context.oBackingStorePixelRatio ||
+                                    context.backingStorePixelRatio || 1
+
             settings.ratio = devicePixelRatio / backingStoreRatio * settings.projectedScale
-            settings.area = 1 / settings.ratio / settings.projectedScale
+            settings.area = 1 / settings.ratio / settings.projectedScale // FIXME check if the last / is needed, bc it's already in ratio, no?
             if (settings.projection)
                 settings.area = settings.area / settings.projection.scale() / 25
 
@@ -441,7 +442,9 @@ var ZoomableCanvasMap;
                     translate: settings.translate,
                     width: settings.width,
                     height: settings.height,
-                    map: settings.map
+                    map: settings.map,
+                    projection: settings.projection,
+                    projectedScale: settings.projectedScale
                 },
                 topojsonPoint = settings.projection ? settings.projection.invert(point) : point
 
