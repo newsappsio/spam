@@ -245,7 +245,7 @@ var ZoomableCanvasMap;
             dy = b[1][1] - b[0][1]
 
         if (!settings.projection) {
-            settings.projectedScale = settings.width / dx
+            settings.projectedScale = settings.width / b[1][0]
         }
 
         if (!parameters.hasOwnProperty("projection")) {
@@ -613,7 +613,7 @@ var ZoomableCanvasMap;
             context.save()
             context.scale(scale * settings.ratio, scale * settings.ratio)
             context.translate(translate[0], translate[1])
-            context.clearRect(- translate[0], - translate[1], settings.width * settings.ratio, settings.height * settings.ratio)
+            context.clearRect(- translate[0], - translate[1], settings.width * settings.ratio / settings.projectedScale, settings.height * settings.ratio / settings.projectedScale)
             var parameters = {
                 path: dataPath,
                 context: context,
