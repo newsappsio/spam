@@ -538,7 +538,7 @@ var ZoomableCanvasMap;
         var map = new CanvasMap(parameters),
             simplify = d3.geo.transform({
                 point: function(x, y, z) {
-                    if (z >= area) this.stream.point(x, y)
+                    if (!z || z >= area) this.stream.point(x, y)
                 }
             }),
             area = 0,
@@ -592,6 +592,8 @@ var ZoomableCanvasMap;
             map.paint()
         }
         function scaleZoom(scale, translate) {
+            // We can just mutex with a standard variable, because JS is single threaded, yay!
+            // The mutex is needed not to start multiple d3 transitions.
             if (busy) {
                 return
             }
@@ -615,7 +617,9 @@ var ZoomableCanvasMap;
             context.save()
             context.scale(scale * settings.ratio, scale * settings.ratio)
             context.translate(translate[0], translate[1])
-            context.clearRect(- translate[0], - translate[1], settings.width * settings.ratio / settings.projectedScale, settings.height * settings.ratio / settings.projectedScale)
+            context.clearRect(- translate[0], - translate[1],
+                settings.width * settings.ratio / settings.projectedScale,
+                settings.height * settings.ratio / settings.projectedScale)
             var parameters = {
                 path: dataPath,
                 context: context,
@@ -634,8 +638,7 @@ var ZoomableCanvasMap;
                 translate: translate
             })
             if (!image) {
-                var background = new Image(),
-                    partialPainter = new PartialPainter(settings.data, parameters)
+                var partialPainter = new PartialPainter(settings.data, parameters)
             }
 
             var translatedOne = translatePoint([settings.width, settings.height], scale, translate),
@@ -661,11 +664,10 @@ var ZoomableCanvasMap;
                         oldScale = settings.scale
                     return function(t) {
                         settings.scale = i(t)
-                        var newTranslate = [
+                        settings.translate = [
                             oldTranslate[0] + (translate[0] - oldTranslate[0]) / (scale - oldScale) * (i(t) - oldScale) * scale / i(t),
                             oldTranslate[1] + (translate[1] - oldTranslate[1]) / (scale - oldScale) * (i(t) - oldScale) * scale / i(t),
                         ]
-                        settings.translate = newTranslate
                         map.paint()
                         !image && partialPainter.renderNext()
                     }
@@ -683,6 +685,8 @@ var ZoomableCanvasMap;
                     } else {
                         map.paint()
                         partialPainter.finish()
+
+                        var background = new Image()
                         background.onload = function() {
                             context.restore()
                             imageCache.addImage({
