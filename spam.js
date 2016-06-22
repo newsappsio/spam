@@ -101,7 +101,6 @@ var ZoomableCanvasMap;
         element.static.postpaint && element.static.postpaint(parameters)
     }
 
-    // FIXME refactor and prettify
     function PartialPainter(data, parameters) {
         var index = 0,
             j = 0,
@@ -173,7 +172,6 @@ var ZoomableCanvasMap;
             }
         }
     }
-
 
     function translatePoint(point, scale, translate) {
         return [
@@ -253,7 +251,7 @@ var ZoomableCanvasMap;
             settings.projection.scale(0.9 * (settings.width / dx))
                 .translate([settings.width / 2, settings.height / 2])
         } else if (!settings.height) {
-            settings.height = Math.ceil(dy * 1 / 0.9) * settings.projectedScale
+            settings.height = Math.ceil(dy / 0.9) * settings.projectedScale
         }
         d3.select(settings.parameters).attr("height", settings.height)
 
@@ -340,7 +338,9 @@ var ZoomableCanvasMap;
             context.scale(settings.scale * settings.ratio, settings.scale * settings.ratio)
             context.translate(settings.translate[0], settings.translate[1])
 
-            context.clearRect(- settings.translate[0], - settings.translate[1], settings.width * settings.ratio / settings.projectedScale, settings.height * settings.ratio / settings.projectedScale)
+            context.clearRect(- settings.translate[0], - settings.translate[1],
+                settings.width * settings.ratio / settings.projectedScale,
+                settings.height * settings.ratio / settings.projectedScale)
 
             context.rect(- settings.translate[0], - settings.translate[1],
                 settings.width / settings.scale / settings.projectedScale,
@@ -371,10 +371,12 @@ var ZoomableCanvasMap;
             }
 
             context.drawImage(settings.background, 0, 0,
-                settings.width * settings.ratio / settings.projectedScale, settings.height * settings.ratio / settings.projectedScale,
+                settings.width * settings.ratio / settings.projectedScale,
+                settings.height * settings.ratio / settings.projectedScale,
                 - settings.backgroundTranslate[0],
                 - settings.backgroundTranslate[1],
-                settings.width / settings.backgroundScale / settings.projectedScale, settings.height / settings.backgroundScale / settings.projectedScale)
+                settings.width / settings.backgroundScale / settings.projectedScale,
+                settings.height / settings.backgroundScale / settings.projectedScale)
 
             for (var i in settings.data) {
                 var element = settings.data[i]
@@ -513,13 +515,13 @@ var ZoomableCanvasMap;
             // Auto set scale=1, translate[0, 0] image as default return
             var currentImage = cache.length > 0 ? cache[0] : null
             for (var i in cache) {
-                var image = cache[i]
-                var imageBB = [
-                    - image.translate[0],
-                    - image.translate[1],
-                    settings.width / image.scale - image.translate[0],
-                    settings.height / image.scale - image.translate[1]
-                ]
+                var image = cache[i],
+                    imageBB = [
+                        - image.translate[0],
+                        - image.translate[1],
+                        settings.width / image.scale - image.translate[0],
+                        settings.height / image.scale - image.translate[1]
+                    ]
                 if (imageBB[0] <= bbox[0] &&
                     imageBB[1] <= bbox[1] &&
                     imageBB[2] >= bbox[2] &&
