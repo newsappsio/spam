@@ -1,7 +1,7 @@
 ! function() {
     "use strict";
 
-    if (typeof module !== 'undefined') { 
+    if (typeof module !== 'undefined') {
         var d3 = require('d3'),
             topojson = require('topojson'),
             rbush = require('rbush')
@@ -73,13 +73,13 @@
 
         for (var j in element.features.features) {
             var bounds = dataPath.bounds(element.features.features[j])
-            elements.push([
-                bounds[0][0].toFixed(0),
-                bounds[0][1].toFixed(0),
-                Math.ceil(bounds[1][0]),
-                Math.ceil(bounds[1][1]),
-                element.features.features[j]
-            ])
+            elements.push({
+                minX: bounds[0][0].toFixed(0),
+                minY: bounds[0][1].toFixed(0),
+                maxX: Math.ceil(bounds[1][0]),
+                maxY: Math.ceil(bounds[1][1]),
+                polygon: element.features.features[j]
+            })
         }
         element.lookupTree.load(elements)
     }
@@ -96,14 +96,14 @@
         if (element.static.prepaint)
             element.static.prepaint(parameters)
         if (element.static.paintfeature) {
-            var lookup = element.lookupTree.search([
-                parameters.translate[0],
-                parameters.translate[1],
-                parameters.width / parameters.scale - parameters.translate[0],
-                parameters.height / parameters.scale - parameters.translate[1]
-            ])
+            var lookup = element.lookupTree.search({
+                minX: parameters.translate[0],
+                minY: parameters.translate[1],
+                maxX: parameters.width / parameters.scale - parameters.translate[0],
+                maxY: parameters.height / parameters.scale - parameters.translate[1]
+            })
             for (var j in lookup) {
-                paintFeature(element, lookup[j][4], parameters)
+                paintFeature(element, lookup[j].polygon, parameters)
             }
         }
         if (element.static.postpaint)
@@ -134,18 +134,18 @@
                 if (element.static.prepaint)
                     element.static.prepaint(parameters)
 
-                currentLookup = element.lookupTree.search([
-                    - parameters.translate[0],
-                    - parameters.translate[1],
-                    parameters.width / parameters.scale - parameters.translate[0],
-                    parameters.height / parameters.scale - parameters.translate[1]
-                ])
+                currentLookup = element.lookupTree.search({
+                    minX: - parameters.translate[0],
+                    minY: - parameters.translate[1],
+                    maxX: parameters.width / parameters.scale - parameters.translate[0],
+                    maxY: parameters.height / parameters.scale - parameters.translate[1]
+                })
                 j = 0
                 ++index
             }
             if (element.static.paintfeature) {
                 for (; j != currentLookup.length; ++j) {
-                    var feature = currentLookup[j][4]
+                    var feature = currentLookup[j].polygon
                     paintFeature(element, feature, parameters)
                     if ((performance.now() - start) > 10)
                         break
@@ -173,17 +173,17 @@
 
                     if (element.static.prepaint)
                         element.static.prepaint(parameters)
-                    currentLookup = element.lookupTree.search([
-                        - parameters.translate[0],
-                        - parameters.translate[1],
-                        parameters.width / parameters.scale - parameters.translate[0],
-                        parameters.height / parameters.scale - parameters.translate[1]
-                    ])
+                    currentLookup = element.lookupTree.search({
+                        minX: - parameters.translate[0],
+                        minY: - parameters.translate[1],
+                        maxX: parameters.width / parameters.scale - parameters.translate[0],
+                        maxY: parameters.height / parameters.scale - parameters.translate[1]
+                    })
                     j = 0
                 }
                 if (element.static.paintfeature) {
                     for (; j != currentLookup.length; ++j) {
-                        var feature = currentLookup[j][4]
+                        var feature = currentLookup[j].polygon
                         paintFeature(element, feature, parameters)
                     }
                 }
@@ -415,10 +415,15 @@
                 if (!element.events || !element.events.click)
                     continue
 
-                var lookup = element.lookupTree.search([point[0], point[1], point[0], point[1]])
+                var lookup = element.lookupTree.search({
+                    minX: point[0],
+                    minY: point[1],
+                    maxX: point[0],
+                    maxY: point[1]
+                })
                 var isInside = false
                 for (var j in lookup) {
-                    var feature = lookup[j][4]
+                    var feature = lookup[j].polygon
                     if (inside(settings.projection.invert(point), feature)) {
                         element.events.click(parameters, feature)
                         isInside = true
@@ -463,9 +468,14 @@
                     continue
                 }
                 element.hoverElement = false
-                var lookup = element.lookupTree.search([point[0], point[1], point[0], point[1]])
+                var lookup = element.lookupTree.search({
+                    minX: point[0],
+                    minY: point[1],
+                    maxX: point[0],
+                    maxY: point[1]
+                })
                 for (var j in lookup) {
-                    var feature = lookup[j][4]
+                    var feature = lookup[j].polygon
                     if (inside(settings.projection.invert(point), feature)) {
                         element.hoverElement = feature
                         break
