@@ -82,7 +82,6 @@
             })
         }
         element.lookupTree.load(elements)
-        console.log(element.lookupTree)
     }
 
     function createRTrees(data, dataPath) {
@@ -500,7 +499,7 @@
                     projectedScale: settings.projectedScale
                 },
                 topojsonPoint = settings.projection ? settings.projection.invert(point) : point
-            console.log(topojsonPoint)
+            //console.log(topojsonPoint)
             for (var i in settings.data) {
                 var element = settings.data[i]
                 if (!element.events || !element.events.hover ||
