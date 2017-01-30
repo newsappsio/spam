@@ -112,12 +112,12 @@
         var index = 0,
             j = 0,
             element = data[index],
-            currentLookup = element.lookupTree.search([
-                - parameters.translate[0],
-                - parameters.translate[1],
-                parameters.width / parameters.scale / parameters.projectedScale - parameters.translate[0],
-                parameters.height / parameters.scale / parameters.projectedScale - parameters.translate[1]
-            ])
+            currentLookup = element.lookupTree.search({
+                minX: - parameters.translate[0],
+                minY: - parameters.translate[1],
+                maxX: parameters.width / parameters.scale / parameters.projectedScale - parameters.translate[0],
+                maxY: parameters.height / parameters.scale / parameters.projectedScale - parameters.translate[1]
+            })
 
         function selectNextIndex() {
             index++
@@ -127,12 +127,12 @@
             if (index >= data.length)
                 return false
             element = data[index]
-            currentLookup = element.lookupTree.search([
-                - parameters.translate[0],
-                - parameters.translate[1],
-                parameters.width / parameters.scale / parameters.projectedScale - parameters.translate[0],
-                parameters.height / parameters.scale / parameters.projectedScale - parameters.translate[1]
-            ])
+            currentLookup = element.lookupTree.search({
+                minX: - parameters.translate[0],
+                minY: - parameters.translate[1],
+                maxX: parameters.width / parameters.scale / parameters.projectedScale - parameters.translate[0],
+                maxY: parameters.height / parameters.scale / parameters.projectedScale - parameters.translate[1]
+            })
             j = 0
             return true
         }
@@ -151,34 +151,9 @@
             !element.static.paintfeature && (j = currentLookup.length)
 
             for (; j != currentLookup.length; ++j) {
+                paintFeature(element, currentLookup[j].polygon, parameters)
                 if ((performance.now() - start) > 10)
                     return
-                element = data[index]
-
-                if (element.static.prepaint)
-                    element.static.prepaint(parameters)
-
-                currentLookup = element.lookupTree.search({
-                    minX: - parameters.translate[0],
-                    minY: - parameters.translate[1],
-                    maxX: parameters.width / parameters.scale - parameters.translate[0],
-                    maxY: parameters.height / parameters.scale - parameters.translate[1]
-                })
-                j = 0
-                ++index
-            }
-            if (element.static.paintfeature) {
-                for (; j != currentLookup.length; ++j) {
-                    var feature = currentLookup[j].polygon
-                    paintFeature(element, feature, parameters)
-                    if ((performance.now() - start) > 10)
-                        break
-                }
-            } else {
-                j = currentLookup.length
-            }
-            if (j == currentLookup.length && element.static.postpaint) {
-                element.static.postpaint(parameters)
             }
             element.static.postpaint && element.static.postpaint(parameters)
         }
@@ -186,22 +161,8 @@
             if (j < currentLookup.length) {
                 if (element.static.paintfeature) {
                     for (; j != currentLookup.length; ++j) {
-                        var feature = currentLookup[j][4]
-                        paintFeature(element, feature, parameters)
+                        paintFeature(element, currentLookup[j].polygon, parameters)
                     }
-                    if (index >= data.length)
-                        return
-                    element = data[index]
-
-                    if (element.static.prepaint)
-                        element.static.prepaint(parameters)
-                    currentLookup = element.lookupTree.search({
-                        minX: - parameters.translate[0],
-                        minY: - parameters.translate[1],
-                        maxX: parameters.width / parameters.scale - parameters.translate[0],
-                        maxY: parameters.height / parameters.scale - parameters.translate[1]
-                    })
-                    j = 0
                 }
                 element.static.postpaint && element.static.postpaint(parameters)
             }
@@ -209,8 +170,7 @@
                 element.static.prepaint && element.static.prepaint(parameters)
                 if (element.static.paintfeature) {
                     for (; j != currentLookup.length; ++j) {
-                        var feature = currentLookup[j].polygon
-                        paintFeature(element, feature, parameters)
+                        paintFeature(element, currentLookup[j].polygon, parameters)
                     }
                 }
                 element.static.postpaint && element.static.postpaint(parameters)
