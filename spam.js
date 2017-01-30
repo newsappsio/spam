@@ -1,7 +1,7 @@
 ! function() {
     "use strict";
 
-    if (typeof module !== 'undefined') { 
+    if (typeof module !== 'undefined') {
         var d3 = require('d3'),
             topojson = require('topojson'),
             rbush = require('rbush')
@@ -73,15 +73,16 @@
 
         for (var j in element.features.features) {
             var bounds = dataPath.bounds(element.features.features[j])
-            elements.push([
-                bounds[0][0].toFixed(0),
-                bounds[0][1].toFixed(0),
-                Math.ceil(bounds[1][0]),
-                Math.ceil(bounds[1][1]),
-                element.features.features[j]
-            ])
+            elements.push({
+                minX: Math.floor(bounds[0][0]),
+                minY: Math.floor(bounds[0][1]),
+                maxX: Math.ceil(bounds[1][0]),
+                maxY: Math.ceil(bounds[1][1]),
+                polygon: element.features.features[j]
+            })
         }
         element.lookupTree.load(elements)
+        console.log(element.lookupTree)
     }
 
     function createRTrees(data, dataPath) {
@@ -151,9 +152,34 @@
             !element.static.paintfeature && (j = currentLookup.length)
 
             for (; j != currentLookup.length; ++j) {
-                paintFeature(element, currentLookup[j][4], parameters)
                 if ((performance.now() - start) > 10)
                     return
+                element = data[index]
+
+                if (element.static.prepaint)
+                    element.static.prepaint(parameters)
+
+                currentLookup = element.lookupTree.search({
+                    minX: - parameters.translate[0],
+                    minY: - parameters.translate[1],
+                    maxX: parameters.width / parameters.scale - parameters.translate[0],
+                    maxY: parameters.height / parameters.scale - parameters.translate[1]
+                })
+                j = 0
+                ++index
+            }
+            if (element.static.paintfeature) {
+                for (; j != currentLookup.length; ++j) {
+                    var feature = currentLookup[j].polygon
+                    paintFeature(element, feature, parameters)
+                    if ((performance.now() - start) > 10)
+                        break
+                }
+            } else {
+                j = currentLookup.length
+            }
+            if (j == currentLookup.length && element.static.postpaint) {
+                element.static.postpaint(parameters)
             }
             element.static.postpaint && element.static.postpaint(parameters)
         }
@@ -164,6 +190,19 @@
                         var feature = currentLookup[j][4]
                         paintFeature(element, feature, parameters)
                     }
+                    if (index >= data.length)
+                        return
+                    element = data[index]
+
+                    if (element.static.prepaint)
+                        element.static.prepaint(parameters)
+                    currentLookup = element.lookupTree.search({
+                        minX: - parameters.translate[0],
+                        minY: - parameters.translate[1],
+                        maxX: parameters.width / parameters.scale - parameters.translate[0],
+                        maxY: parameters.height / parameters.scale - parameters.translate[1]
+                    })
+                    j = 0
                 }
                 element.static.postpaint && element.static.postpaint(parameters)
             }
@@ -171,7 +210,7 @@
                 element.static.prepaint && element.static.prepaint(parameters)
                 if (element.static.paintfeature) {
                     for (; j != currentLookup.length; ++j) {
-                        var feature = currentLookup[j][4]
+                        var feature = currentLookup[j].polygon
                         paintFeature(element, feature, parameters)
                     }
                 }
@@ -412,10 +451,15 @@
                 if (!element.events || !element.events.click)
                     continue
 
-                var lookup = element.lookupTree.search([point[0], point[1], point[0], point[1]]),
-                    isInside = false
+                var lookup = element.lookupTree.search({
+                    minX: point[0],
+                    minY: point[1],
+                    maxX: point[0],
+                    maxY: point[1]
+                })
+                var isInside = false
                 for (var j in lookup) {
-                    var feature = lookup[j][4]
+                    var feature = lookup[j].polygon
                     if (inside(topojsonPoint, feature)) {
                         element.events.click(parameters, feature)
                         isInside = true
@@ -456,7 +500,7 @@
                     projectedScale: settings.projectedScale
                 },
                 topojsonPoint = settings.projection ? settings.projection.invert(point) : point
-
+            console.log(topojsonPoint)
             for (var i in settings.data) {
                 var element = settings.data[i]
                 if (!element.events || !element.events.hover ||
@@ -464,9 +508,14 @@
                     continue
                 }
                 element.hoverElement = false
-                var lookup = element.lookupTree.search([point[0], point[1], point[0], point[1]])
+                var lookup = element.lookupTree.search({
+                    minX: point[0],
+                    minY: point[1],
+                    maxX: point[0],
+                    maxY: point[1]
+                })
                 for (var j in lookup) {
-                    var feature = lookup[j][4]
+                    var feature = lookup[j].polygon
                     if (inside(topojsonPoint, feature)) {
                         element.hoverElement = feature
                         break

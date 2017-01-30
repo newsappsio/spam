@@ -74,6 +74,8 @@
                                     parameters.map.zoom(d)
                                 },
                                 hover: function(parameters, d) {
+                                    //if (d)
+                                    //    console.log("HOVER " + d.properties.name)
                                     hover = d
                                     parameters.map.paint()
                                 }
@@ -92,7 +94,7 @@
                     })
 
                     map.init()
-                    console.log(map)
+                    //console.log(map)
                 })
             })
         </script>
