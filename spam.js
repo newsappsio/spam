@@ -99,100 +99,86 @@
     function paintBackgroundElement(element, parameters) {
         if (!element.static)
             return
-        if (element.static.prepaint)
-            element.static.prepaint(parameters)
+        element.static.prepaint && element.static.prepaint(parameters)
         if (element.static.paintfeature) {
             for (var j in element.features.features) {
                 paintFeature(element, element.features.features[j], parameters)
             }
         }
-        if (element.static.postpaint)
-            element.static.postpaint(parameters)
+        element.static.postpaint && element.static.postpaint(parameters)
     }
 
     function PartialPainter(data, parameters) {
         var index = 0,
             j = 0,
-            element = null,
-            currentLookup = []
+            element = data[index],
+            currentLookup = element.lookupTree.search([
+                - parameters.translate[0],
+                - parameters.translate[1],
+                parameters.width / parameters.scale / parameters.projectedScale - parameters.translate[0],
+                parameters.height / parameters.scale / parameters.projectedScale - parameters.translate[1]
+            ])
+
+        function selectNextIndex() {
+            index++
+            while (index < data.length && !data[index].static) {
+                index++
+            }
+            if (index >= data.length)
+                return false
+            element = data[index]
+            currentLookup = element.lookupTree.search([
+                - parameters.translate[0],
+                - parameters.translate[1],
+                parameters.width / parameters.scale / parameters.projectedScale - parameters.translate[0],
+                parameters.height / parameters.scale / parameters.projectedScale - parameters.translate[1]
+            ])
+            j = 0
+            return true
+        }
 
         this.hasNext = function() {
-            return index <= data.length && j < currentLookup.length
+            return index < data.length && j < currentLookup.length
         }
         this.renderNext = function() {
-            if (index >= data.length && j >= currentLookup.length)
+            if (!this.hasNext())
                 return
             var start = performance.now()
-            if (!element || j >= currentLookup.length) {
-                while (index < data.length && !data[index].static) {
-                    index++
-                }
-                if (index >= data.length)
+            j >= currentLookup.length && selectNextIndex()
+
+            !j && element.static.prepaint && element.static.prepaint(parameters)
+
+            !element.static.paintfeature && (j = currentLookup.length)
+
+            for (; j != currentLookup.length; ++j) {
+                paintFeature(element, currentLookup[j][4], parameters)
+                if ((performance.now() - start) > 10)
                     return
-                element = data[index]
-
-                if (element.static.prepaint)
-                    element.static.prepaint(parameters)
-
-                currentLookup = element.lookupTree.search([
-                    - parameters.translate[0],
-                    - parameters.translate[1],
-                    parameters.width / parameters.scale - parameters.translate[0],
-                    parameters.height / parameters.scale - parameters.translate[1]
-                ])
-                j = 0
-                ++index
             }
-            if (element.static.paintfeature) {
-                for (; j != currentLookup.length; ++j) {
-                    var feature = currentLookup[j][4]
-                    paintFeature(element, feature, parameters)
-                    if ((performance.now() - start) > 10)
-                        break
-                }
-            } else {
-                j = currentLookup.length
-            }
-            if (j == currentLookup.length && element.static.postpaint) {
-                element.static.postpaint(parameters)
-            }
+            element.static.postpaint && element.static.postpaint(parameters)
         }
         this.finish = function() {
-            if (index >= data.length && j >= currentLookup.length)
-                return
-            if (j < currentLookup.length)
-                index--
-            for (; index != data.length; ++index) {
-                if (j >= currentLookup.length) {
-                    while (!data[index].static && index < data.length) {
-                        index++
-                    }
-                    if (index >= data.length)
-                        return
-                    element = data[index]
-
-                    if (element.static.prepaint)
-                        element.static.prepaint(parameters)
-                    currentLookup = element.lookupTree.search([
-                        - parameters.translate[0],
-                        - parameters.translate[1],
-                        parameters.width / parameters.scale - parameters.translate[0],
-                        parameters.height / parameters.scale - parameters.translate[1]
-                    ])
-                    j = 0
-                }
+            if (j < currentLookup.length) {
                 if (element.static.paintfeature) {
                     for (; j != currentLookup.length; ++j) {
                         var feature = currentLookup[j][4]
                         paintFeature(element, feature, parameters)
                     }
                 }
-                if (element.static.postpaint)
-                    element.static.postpaint(parameters)
+                element.static.postpaint && element.static.postpaint(parameters)
+            }
+            while (selectNextIndex()) {
+                element.static.prepaint && element.static.prepaint(parameters)
+                if (element.static.paintfeature) {
+                    for (; j != currentLookup.length; ++j) {
+                        var feature = currentLookup[j][4]
+                        paintFeature(element, feature, parameters)
+                    }
+                }
+                element.static.postpaint && element.static.postpaint(parameters)
             }
         }
     }
-
 
     function translatePoint(point, scale, translate) {
         return [
@@ -220,6 +206,7 @@
                 ratio: 1,
                 area: 0,
                 scale: 1,
+                projectedScale: 1,
                 translate: [0, 0],
                 background: null,
                 backgroundScale: 1,
@@ -262,12 +249,16 @@
         var dx = b[1][0] - b[0][0],
             dy = b[1][1] - b[0][1]
 
+        if (!settings.projection) {
+            settings.projectedScale = settings.width / b[1][0]
+        }
+
         if (!parameters.hasOwnProperty("projection")) {
             settings.height = settings.height || Math.ceil(dy * settings.width / dx)
             settings.projection.scale(0.9 * (settings.width / dx))
                 .translate([settings.width / 2, settings.height / 2])
         } else if (!settings.height) {
-            settings.height = Math.ceil(dy * 1 / 0.9)
+            settings.height = Math.ceil(dy / 0.9) * settings.projectedScale
         }
         d3.select(settings.parameters).attr("height", settings.height)
 
@@ -278,17 +269,18 @@
 
             var devicePixelRatio = window.devicePixelRatio || 1,
                 backingStoreRatio = context.webkitBackingStorePixelRatio ||
-                context.mozBackingStorePixelRatio ||
-                context.msBackingStorePixelRatio ||
-                context.oBackingStorePixelRatio ||
-                context.backingStorePixelRatio || 1
-            settings.ratio = devicePixelRatio / backingStoreRatio
+                                    context.mozBackingStorePixelRatio ||
+                                    context.msBackingStorePixelRatio ||
+                                    context.oBackingStorePixelRatio ||
+                                    context.backingStorePixelRatio || 1
+
+            settings.ratio = devicePixelRatio / backingStoreRatio * settings.projectedScale
             settings.area = 1 / settings.ratio
             if (settings.projection)
                 settings.area = settings.area / settings.projection.scale() / 25
 
-            canvas.attr("width", settings.width * settings.ratio)
-            canvas.attr("height", settings.height * settings.ratio)
+            canvas.attr("width", settings.width / settings.projectedScale * settings.ratio)
+            canvas.attr("height", settings.height / settings.projectedScale * settings.ratio)
             canvas.style("width", settings.width + "px")
             canvas.style("height", settings.height + "px")
             context.lineJoin = "round"
@@ -306,9 +298,6 @@
 
                 hasHover = hasHover || (element.events && element.events.hover)
                 hasClick = hasClick || (element.events && element.events.click)
-
-                if (element.dynamic && element.dynamic.postpaint)
-                    element.dynamic.postpaint(parameters, null)
             }
 
             // Only compute rtrees if we need it for event handling
@@ -327,7 +316,8 @@
                 width: settings.width,
                 height: settings.height,
                 map: settings.map,
-                projection: settings.projection
+                projection: settings.projection,
+                projectedScale: settings.projectedScale
             }
             var callback = function() {
                 context.restore()
@@ -335,13 +325,10 @@
                 hasClick && canvas.on("click", click)
                 hasHover && canvas.on("mousemove", hover)
                                   .on("mouseleave", hoverLeave)
+
+                paint() // For dynamic paints
             }
 
-            for (var i in settings.data) {
-                var element = settings.data[i]
-                if (element.dynamic && element.dynamic.prepaint)
-                    element.dynamic.prepaint(parameters, element.hoverElement)
-            }
             for (var i in settings.data) {
                 var element = settings.data[i]
                 paintBackgroundElement(element, parameters)
@@ -353,20 +340,19 @@
             this.init = function() {}
         }
 
-        // TODO probably try to use the same data path in the zoom class, but have a different area settable?
-
         function paint() {
             context.save()
             context.scale(settings.scale * settings.ratio, settings.scale * settings.ratio)
             context.translate(settings.translate[0], settings.translate[1])
 
-            context.clearRect(- settings.translate[0], - settings.translate[1], settings.width * settings.ratio, settings.height * settings.ratio)
+            context.clearRect(- settings.translate[0], - settings.translate[1],
+                settings.width * settings.ratio / settings.projectedScale,
+                settings.height * settings.ratio / settings.projectedScale)
 
             context.rect(- settings.translate[0], - settings.translate[1],
-                settings.width / settings.scale,
-                settings.height / settings.scale)
+                settings.width / settings.scale / settings.projectedScale,
+                settings.height / settings.scale / settings.projectedScale)
             context.clip()
-
 
             // FIXME this needs a way for the callback to use the lookupTree?
             var parameters = {
@@ -377,7 +363,8 @@
                 width: settings.width,
                 height: settings.height,
                 map: settings.map,
-                projection: settings.projection
+                projection: settings.projection,
+                projectedScale: settings.projectedScale
             }
 
             settings.area = 1 / settings.scale / settings.ratio
@@ -391,10 +378,12 @@
             }
 
             context.drawImage(settings.background, 0, 0,
-                settings.width * settings.ratio, settings.height * settings.ratio,
+                settings.width * settings.ratio / settings.projectedScale,
+                settings.height * settings.ratio / settings.projectedScale,
                 - settings.backgroundTranslate[0],
                 - settings.backgroundTranslate[1],
-                settings.width / settings.backgroundScale, settings.height / settings.backgroundScale)
+                settings.width / settings.backgroundScale / settings.projectedScale,
+                settings.height / settings.backgroundScale / settings.projectedScale)
 
             for (var i in settings.data) {
                 var element = settings.data[i]
@@ -406,7 +395,7 @@
         }
 
         function click() {
-            var point = translatePoint(d3.mouse(this), settings.scale, settings.translate),
+            var point = translatePoint(d3.mouse(this), settings.scale * settings.projectedScale, settings.translate),
                 topojsonPoint = settings.projection ? settings.projection.invert(point) : point
 
             var parameters = {
@@ -415,15 +404,16 @@
                 width: settings.width,
                 height: settings.height,
                 map: settings.map,
-                projection: settings.projection
+                projection: settings.projection,
+                projectedScale: settings.projectedScale
             }
             for (var i in settings.data) {
                 var element = settings.data[i]
                 if (!element.events || !element.events.click)
                     continue
 
-                var lookup = element.lookupTree.search([point[0], point[1], point[0], point[1]])
-                var isInside = false
+                var lookup = element.lookupTree.search([point[0], point[1], point[0], point[1]]),
+                    isInside = false
                 for (var j in lookup) {
                     var feature = lookup[j][4]
                     if (inside(topojsonPoint, feature)) {
@@ -442,7 +432,8 @@
                 width: settings.width,
                 height: settings.height,
                 map: settings.map,
-                projection: settings.projection
+                projection: settings.projection,
+                projectedScale: settings.projectedScale
             }
             for (var i in settings.data) {
                 var element = settings.data[i]
@@ -454,13 +445,15 @@
         }
 
         function hover() {
-            var point = translatePoint(d3.mouse(this), settings.scale, settings.translate),
+            var point = translatePoint(d3.mouse(this), settings.scale * settings.projectedScale, settings.translate),
                 parameters = {
                     scale: settings.scale,
                     translate: settings.translate,
                     width: settings.width,
                     height: settings.height,
-                    map: settings.map
+                    map: settings.map,
+                    projection: settings.projection,
+                    projectedScale: settings.projectedScale
                 },
                 topojsonPoint = settings.projection ? settings.projection.invert(point) : point
 
@@ -529,13 +522,13 @@
             // Auto set scale=1, translate[0, 0] image as default return
             var currentImage = cache.length > 0 ? cache[0] : null
             for (var i in cache) {
-                var image = cache[i]
-                var imageBB = [
-                    - image.translate[0],
-                    - image.translate[1],
-                    settings.width / image.scale - image.translate[0],
-                    settings.height / image.scale - image.translate[1]
-                ]
+                var image = cache[i],
+                    imageBB = [
+                        - image.translate[0],
+                        - image.translate[1],
+                        settings.width / image.scale - image.translate[0],
+                        settings.height / image.scale - image.translate[1]
+                    ]
                 if (imageBB[0] <= bbox[0] &&
                     imageBB[1] <= bbox[1] &&
                     imageBB[2] >= bbox[2] &&
@@ -552,7 +545,7 @@
         var map = new CanvasMap(parameters),
             simplify = d3.geo.transform({
                 point: function(x, y, z) {
-                    if (z >= area) this.stream.point(x, y)
+                    if (!z || z >= area) this.stream.point(x, y)
                 }
             }),
             area = 0,
@@ -578,15 +571,14 @@
         this.init = function() {
             map.init()
 
-            canvas = d3.select(settings.element)
-                .append("canvas")
+            canvas = d3.select(settings.element).append("canvas")
             context = canvas.node().getContext("2d")
             area = 1 / settings.ratio
             if (settings.projection)
                 area = area / settings.projection.scale() / 25
 
-            canvas.attr("width", settings.width * settings.ratio)
-            canvas.attr("height", settings.height * settings.ratio)
+            canvas.attr("width", settings.width * settings.ratio / settings.projectedScale)
+            canvas.attr("height", settings.height * settings.ratio / settings.projectedScale)
             canvas.style("width", settings.width + "px")
             canvas.style("height", settings.height + "px")
             canvas.style("display", "none")
@@ -607,6 +599,8 @@
             map.paint()
         }
         function scaleZoom(scale, translate) {
+            // We can just mutex with a standard variable, because JS is single threaded, yay!
+            // The mutex is needed not to start multiple d3 transitions.
             if (busy) {
                 return
             }
@@ -630,16 +624,20 @@
             context.save()
             context.scale(scale * settings.ratio, scale * settings.ratio)
             context.translate(translate[0], translate[1])
-            context.clearRect(- translate[0], - translate[1], settings.width * settings.ratio, settings.height * settings.ratio)
+            context.clearRect(- translate[0], - translate[1],
+                settings.width * settings.ratio / settings.projectedScale,
+                settings.height * settings.ratio / settings.projectedScale)
             var parameters = {
                 path: dataPath,
                 context: context,
                 scale: scale,
+                projectedScale: settings.projectedScale,
                 translate: translate,
                 width: settings.width,
                 height: settings.height,
                 map: settings.map,
-                projection: settings.projection
+                projection: settings.projection,
+                projectedScale: settings.projectedScale
             }
 
             var image = imageCache.getImage({
@@ -647,8 +645,7 @@
                 translate: translate
             })
             if (!image) {
-                var background = new Image(),
-                    partialPainter = new PartialPainter(settings.data, parameters)
+                var partialPainter = new PartialPainter(settings.data, parameters)
             }
 
             var translatedOne = translatePoint([settings.width, settings.height], scale, translate),
@@ -674,11 +671,10 @@
                         oldScale = settings.scale
                     return function(t) {
                         settings.scale = i(t)
-                        var newTranslate = [
+                        settings.translate = [
                             oldTranslate[0] + (translate[0] - oldTranslate[0]) / (scale - oldScale) * (i(t) - oldScale) * scale / i(t),
                             oldTranslate[1] + (translate[1] - oldTranslate[1]) / (scale - oldScale) * (i(t) - oldScale) * scale / i(t),
                         ]
-                        settings.translate = newTranslate
                         map.paint()
                         !image && partialPainter.renderNext()
                     }
@@ -696,6 +692,8 @@
                     } else {
                         map.paint()
                         partialPainter.finish()
+
+                        var background = new Image()
                         background.onload = function() {
                             context.restore()
                             imageCache.addImage({
@@ -725,10 +723,10 @@
                 dy = bounds[1][1] - bounds[0][1],
                 bx = (bounds[0][0] + bounds[1][0]) / 2,
                 by = (bounds[0][1] + bounds[1][1]) / 2,
-                scale = settings.zoomScale *
+                scale = settings.zoomScale / settings.projectedScale *
                     Math.min(settings.width / dx, settings.height / dy),
-                translate = [-bx + settings.width / scale / 2,
-                             -by + settings.height / scale / 2]
+                translate = [-bx + settings.width / settings.projectedScale / scale / 2,
+                             -by + settings.height / settings.projectedScale / scale / 2]
 
             scaleZoom.call(this, scale, translate)
         }
