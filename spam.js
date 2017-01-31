@@ -251,8 +251,10 @@
             settings.height = settings.height || Math.ceil(dy * settings.width / dx)
             settings.projection.scale(0.9 * (settings.width / dx))
                 .translate([settings.width / 2, settings.height / 2])
+        } else if (!settings.projected) {
+            settings.height = Math.ceil(b[1][1] * settings.projectedScale)
         } else if (!settings.height) {
-            settings.height = Math.ceil(dy / 0.9) * settings.projectedScale
+            settings.height = Math.ceil(dy / 0.9)
         }
         d3.select(settings.parameters).attr("height", settings.height)
 

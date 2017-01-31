@@ -31,7 +31,7 @@
         }
         */
             // TODO queue.js
-            d3.json("bcn.json", function(error, d) {
+            d3.json("municipalities.json", function(error, d) {
                 d3.json("roads.json", function(error, roads) {
                     topojson.presimplify(d)
                     topojson.presimplify(roads)
@@ -43,7 +43,7 @@
                         element: ".js-map",
                         projection: null, // TODO how to automagically detect this?
                         data: [{
-                            features: topojson.feature(d, d.objects["seccio-censal"]),
+                            features: topojson.feature(d, d.objects["municipalities"]),
                             static: {
                                 prepaint: function(parameters) {
                                     console.log("PRE")
