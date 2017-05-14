@@ -1,19 +1,65 @@
-var StaticCanvasMap;
-var ZoomableCanvasMap;
-
 ! function() {
     "use strict";
 
+    if (typeof module !== 'undefined') {
+        var d3 = require('d3'),
+            topojson = require('topojson'),
+            rbush = require('rbush')
+    } else {
+        var d3 = window.d3,
+            topojson = window.topojson,
+            rbush = window.rbush
+    }
+
+    // TODO use turf inside as a dependency?
+    // Copied from turf.inside
+    function inside(pt, polygon) {
+        var polys = polygon.geometry.coordinates
+        // normalize to multipolygon
+        if (polygon.geometry.type === 'Polygon')
+            polys = [polys]
+
+        var insidePoly = false
+        var i = 0
+        while (i < polys.length && !insidePoly) {
+            // check if it is in the outer ring first
+            if (inRing(pt, polys[i][0])) {
+                var inHole = false
+                var k = 1
+                // check for the point in any of the holes
+                while (k < polys[i].length && !inHole) {
+                    if (inRing(pt, polys[i][k])) {
+                        inHole = true
+                    }
+                    k++
+                }
+                if(!inHole)
+                    insidePoly = true
+            }
+            i++
+        }
+        return insidePoly
+    }
+
+    // pt is [x,y] and ring is [[x,y], [x,y],..]
+    function inRing (pt, ring) {
+        var isInside = false
+        for (var i = 0, j = ring.length - 1; i < ring.length; j = i++) {
+            var xi = ring[i][0], yi = ring[i][1]
+            var xj = ring[j][0], yj = ring[j][1]
+            var intersect = ((yi > pt[1]) !== (yj > pt[1])) &&
+                (pt[0] < (xj - xi) * (pt[1] - yi) / (yj - yi) + xi)
+            if (intersect) isInside = !isInside
+        }
+        return isInside
+    }
+
     function maxBounds(one, two) {
         var bounds = two
-        if (one[0][0] < two[0][0])
-            bounds[0][0] = one[0][0]
-        if (one[0][1] < two[0][1])
-            bounds[0][1] = one[0][1]
-        if (one[1][0] > two[1][0])
-            bounds[1][0] = one[1][0]
-        if (one[1][1] > two[1][1])
-            bounds[1][1] = one[1][1]
+        bounds[0][0] = Math.min(one[0][0], two[0][0])
+        bounds[0][1] = Math.min(one[0][1], two[0][1])
+        bounds[1][0] = Math.max(one[1][0], two[1][0])
+        bounds[1][1] = Math.max(one[1][1], two[1][1])
         return bounds
     }
 
@@ -23,15 +69,21 @@ var ZoomableCanvasMap;
 
         for (var j in element.features.features) {
             var bounds = dataPath.bounds(element.features.features[j])
-            elements.push([
-                bounds[0][0].toFixed(0),
-                bounds[0][1].toFixed(0),
-                Math.ceil(bounds[1][0]),
-                Math.ceil(bounds[1][1]),
-                element.features.features[j]
-            ])
+            elements.push({
+                minX: Math.floor(bounds[0][0]),
+                minY: Math.floor(bounds[0][1]),
+                maxX: Math.ceil(bounds[1][0]),
+                maxY: Math.ceil(bounds[1][1]),
+                polygon: element.features.features[j]
+            })
         }
         element.lookupTree.load(elements)
+    }
+
+    function createRTrees(data, dataPath) {
+        for (var i in data) {
+            data[i].lookupTree || createRTree(data[i], dataPath)
+        }
     }
 
     function paintFeature(element, feature, parameters) {
@@ -43,106 +95,84 @@ var ZoomableCanvasMap;
     function paintBackgroundElement(element, parameters) {
         if (!element.static)
             return
-        if (element.static.prepaint)
-            element.static.prepaint(parameters)
+        element.static.prepaint && element.static.prepaint(parameters)
         if (element.static.paintfeature) {
-            var lookup = element.lookupTree.search([
-                parameters.translate[0],
-                parameters.translate[1],
-                parameters.width / parameters.scale - parameters.translate[0],
-                parameters.height / parameters.scale - parameters.translate[1]
-            ])
-            for (var j in lookup) {
-                paintFeature(element, lookup[j][4], parameters)
+            for (var j in element.features.features) {
+                paintFeature(element, element.features.features[j], parameters)
             }
         }
-        if (element.static.postpaint)
-            element.static.postpaint(parameters)
+        element.static.postpaint && element.static.postpaint(parameters)
     }
 
     function PartialPainter(data, parameters) {
         var index = 0,
             j = 0,
-            element = null,
-            currentLookup = []
+            element = data[index],
+            currentLookup = element.lookupTree.search({
+                minX: - parameters.translate[0],
+                minY: - parameters.translate[1],
+                maxX: parameters.width / parameters.scale / parameters.projectedScale - parameters.translate[0],
+                maxY: parameters.height / parameters.scale / parameters.projectedScale - parameters.translate[1]
+            })
+
+        function selectNextIndex() {
+            index++
+            while (index < data.length && !data[index].static) {
+                index++
+            }
+            if (index >= data.length)
+                return false
+            element = data[index]
+            currentLookup = element.lookupTree.search({
+                minX: - parameters.translate[0],
+                minY: - parameters.translate[1],
+                maxX: parameters.width / parameters.scale / parameters.projectedScale - parameters.translate[0],
+                maxY: parameters.height / parameters.scale / parameters.projectedScale - parameters.translate[1]
+            })
+            j = 0
+            return true
+        }
 
         this.hasNext = function() {
-            return index <= data.length && j < currentLookup.length
+            return index < data.length && j < currentLookup.length
         }
         this.renderNext = function() {
-            if (index >= data.length && j >= currentLookup.length)
+            if (!this.hasNext())
                 return
             var start = performance.now()
-            if (!element || j >= currentLookup.length) {
-                while (index < data.length && !data[index].static) {
-                    index++
-                }
-                if (index >= data.length)
+            j >= currentLookup.length && selectNextIndex()
+
+            !j && element.static.prepaint && element.static.prepaint(parameters)
+
+            !element.static.paintfeature && (j = currentLookup.length)
+
+            for (; j != currentLookup.length; ++j) {
+                paintFeature(element, currentLookup[j].polygon, parameters)
+                if ((performance.now() - start) > 10)
                     return
-                element = data[index]
-
-                if (element.static.prepaint)
-                    element.static.prepaint(parameters)
-
-                currentLookup = element.lookupTree.search([
-                    - parameters.translate[0],
-                    - parameters.translate[1],
-                    parameters.width / parameters.scale - parameters.translate[0],
-                    parameters.height / parameters.scale - parameters.translate[1]
-                ])
-                j = 0
-                ++index
             }
-            if (element.static.paintfeature) {
-                for (; j != currentLookup.length; ++j) {
-                    var feature = currentLookup[j][4]
-                    paintFeature(element, feature, parameters)
-                    if ((performance.now() - start) > 10)
-                        break
-                }
-            } else {
-                j = currentLookup.length
-            }
-            if (j == currentLookup.length && element.static.postpaint) {
-                element.static.postpaint(parameters)
-            }
+            element.static.postpaint && element.static.postpaint(parameters)
         }
         this.finish = function() {
-            if (index >= data.length && j >= currentLookup.length)
-                return
-            if (j < currentLookup.length)
-                index--
-            for (; index != data.length; ++index) {
-                if (j >= currentLookup.length) {
-                    while (!data[index].static && index < data.length) {
-                        index++
-                    }
-                    if (index >= data.length)
-                        return
-                    element = data[index]
-
-                    if (element.static.prepaint)
-                        element.static.prepaint(parameters)
-                    currentLookup = element.lookupTree.search([
-                        - parameters.translate[0],
-                        - parameters.translate[1],
-                        parameters.width / parameters.scale - parameters.translate[0],
-                        parameters.height / parameters.scale - parameters.translate[1]
-                    ])
-                    j = 0
-                }
+            if (j < currentLookup.length) {
                 if (element.static.paintfeature) {
                     for (; j != currentLookup.length; ++j) {
-                        var feature = currentLookup[j][4]
-                        paintFeature(element, feature, parameters)
+                        paintFeature(element, currentLookup[j].polygon, parameters)
                     }
                 }
-                if (element.static.postpaint)
-                    element.static.postpaint(parameters)
+                element.static.postpaint && element.static.postpaint(parameters)
+            }
+            while (selectNextIndex()) {
+                element.static.prepaint && element.static.prepaint(parameters)
+                if (element.static.paintfeature) {
+                    for (; j != currentLookup.length; ++j) {
+                        paintFeature(element, currentLookup[j].polygon, parameters)
+                    }
+                }
+                element.static.postpaint && element.static.postpaint(parameters)
             }
         }
     }
-
 
     function translatePoint(point, scale, translate) {
         return [
@@ -170,6 +200,7 @@ var ZoomableCanvasMap;
                 ratio: 1,
                 area: 0,
                 scale: 1,
+                projectedScale: 1,
                 translate: [0, 0],
                 background: null,
                 backgroundScale: 1,
@@ -186,7 +217,7 @@ var ZoomableCanvasMap;
             canvas = null,
             context = null
 
-        if (!parameters.projection) {
+        if (!parameters.hasOwnProperty("projection")) {
             var b = [[Infinity, Infinity],
                      [-Infinity, -Infinity]]
             for (var i in settings.data) {
@@ -198,7 +229,9 @@ var ZoomableCanvasMap;
         }
         var dataPath = d3.geoPath().projection({
             stream: function(s) {
-                return simplify.stream(settings.projection.stream(s))
+                if (settings.projection)
+                    return simplify.stream(settings.projection.stream(s))
+                return simplify.stream(s)
             }
         })
         var b = [[Infinity, Infinity],
@@ -210,12 +243,18 @@ var ZoomableCanvasMap;
         var dx = b[1][0] - b[0][0],
             dy = b[1][1] - b[0][1]
 
-        if (!parameters.projection) {
+        if (!settings.projection) {
+            settings.projectedScale = settings.width / b[1][0]
+        }
+
+        if (!parameters.hasOwnProperty("projection")) {
             settings.height = settings.height || Math.ceil(dy * settings.width / dx)
             settings.projection.scale(0.9 * (settings.width / dx))
                 .translate([settings.width / 2, settings.height / 2])
+        } else if (!settings.projected) {
+            settings.height = Math.ceil(b[1][1] * settings.projectedScale)
         } else if (!settings.height) {
-            settings.height = Math.ceil(dy * 1 / 0.9)
+            settings.height = Math.ceil(dy / 0.9)
         }
         d3.select(settings.parameters).attr("height", settings.height)
 
@@ -226,15 +265,18 @@ var ZoomableCanvasMap;
 
             var devicePixelRatio = window.devicePixelRatio || 1,
                 backingStoreRatio = context.webkitBackingStorePixelRatio ||
-                context.mozBackingStorePixelRatio ||
-                context.msBackingStorePixelRatio ||
-                context.oBackingStorePixelRatio ||
-                context.backingStorePixelRatio || 1
-            settings.ratio = devicePixelRatio / backingStoreRatio
-            settings.area = 1 / settings.projection.scale() / settings.ratio / 20
+                                    context.mozBackingStorePixelRatio ||
+                                    context.msBackingStorePixelRatio ||
+                                    context.oBackingStorePixelRatio ||
+                                    context.backingStorePixelRatio || 1
 
-            canvas.attr("width", settings.width * settings.ratio)
-            canvas.attr("height", settings.height * settings.ratio)
+            settings.ratio = devicePixelRatio / backingStoreRatio * settings.projectedScale
+            settings.area = 1 / settings.ratio
+            if (settings.projection)
+                settings.area = settings.area / settings.projection.scale() / 25
+
+            canvas.attr("width", settings.width / settings.projectedScale * settings.ratio)
+            canvas.attr("height", settings.height / settings.projectedScale * settings.ratio)
             canvas.style("width", settings.width + "px")
             canvas.style("height", settings.height + "px")
             context.lineJoin = "round"
@@ -245,9 +287,18 @@ var ZoomableCanvasMap;
             context.save()
             context.scale(settings.ratio, settings.ratio)
 
-            // TODO move rtree part out?
+            var hasHover = false,
+                hasClick = false
             for (var i in settings.data) {
-                createRTree(settings.data[i], dataPath)
+                var element = settings.data[i]
+
+                hasHover = hasHover || (element.events && element.events.hover)
+                hasClick = hasClick || (element.events && element.events.click)
+            }
+
+            // Only compute rtrees if we need it for event handling
+            if (hasHover || hasClick) {
+                createRTrees(settings.data, dataPath)
             }
 
             settings.background = new Image()
@@ -260,33 +311,20 @@ var ZoomableCanvasMap;
                 translate: settings.translate,
                 width: settings.width,
                 height: settings.height,
-                map: settings.map
+                map: settings.map,
+                projection: settings.projection,
+                projectedScale: settings.projectedScale
             }
             var callback = function() {
-                var hasHover = false,
-                    hasClick = false
-                for (var i in settings.data) {
-                    var element = settings.data[i]
-
-                    hasHover = hasHover || (element.events && element.events.hover)
-                    hasClick = hasClick || (element.events && element.events.click)
-
-                    if (element.dynamic && element.dynamic.postpaint)
-                        element.dynamic.postpaint(parameters, null)
-                }
-
                 context.restore()
 
                 hasClick && canvas.on("click", click)
                 hasHover && canvas.on("mousemove", hover)
                                   .on("mouseleave", hoverLeave)
+
+                paint() // For dynamic paints
             }
 
-            for (var i in settings.data) {
-                var element = settings.data[i]
-                if (element.dynamic && element.dynamic.prepaint)
-                    element.dynamic.prepaint(parameters, element.hoverElement)
-            }
             for (var i in settings.data) {
                 var element = settings.data[i]
                 paintBackgroundElement(element, parameters)
@@ -298,20 +336,19 @@ var ZoomableCanvasMap;
             this.init = function() {}
         }
 
-        // TODO probably try to use the same data path in the zoom class, but have a different area settable?
-
         function paint() {
             context.save()
             context.scale(settings.scale * settings.ratio, settings.scale * settings.ratio)
             context.translate(settings.translate[0], settings.translate[1])
 
-            context.clearRect(- settings.translate[0], - settings.translate[1], settings.width * settings.ratio, settings.height * settings.ratio)
+            context.clearRect(- settings.translate[0], - settings.translate[1],
+                settings.width * settings.ratio / settings.projectedScale,
+                settings.height * settings.ratio / settings.projectedScale)
 
             context.rect(- settings.translate[0], - settings.translate[1],
-                settings.width / settings.scale,
-                settings.height / settings.scale)
+                settings.width / settings.scale / settings.projectedScale,
+                settings.height / settings.scale / settings.projectedScale)
             context.clip()
-
 
             // FIXME this needs a way for the callback to use the lookupTree?
             var parameters = {
@@ -321,10 +358,14 @@ var ZoomableCanvasMap;
                 translate: settings.translate,
                 width: settings.width,
                 height: settings.height,
-                map: settings.map
+                map: settings.map,
+                projection: settings.projection,
+                projectedScale: settings.projectedScale
             }
 
-            settings.area = 1 / settings.projection.scale() / settings.scale / settings.ratio / 20
+            settings.area = 1 / settings.scale / settings.ratio
+            if (settings.projection)
+                settings.area = settings.area / settings.projection.scale() / 25
 
             for (var i in settings.data) {
                 var element = settings.data[i]
@@ -333,10 +374,12 @@ var ZoomableCanvasMap;
             }
 
             context.drawImage(settings.background, 0, 0,
-                settings.width * settings.ratio, settings.height * settings.ratio,
+                settings.width * settings.ratio / settings.projectedScale,
+                settings.height * settings.ratio / settings.projectedScale,
                 - settings.backgroundTranslate[0],
                 - settings.backgroundTranslate[1],
-                settings.width / settings.backgroundScale, settings.height / settings.backgroundScale)
+                settings.width / settings.backgroundScale / settings.projectedScale,
+                settings.height / settings.backgroundScale / settings.projectedScale)
 
             for (var i in settings.data) {
                 var element = settings.data[i]
@@ -348,25 +391,33 @@ var ZoomableCanvasMap;
         }
 
         function click() {
-            var point = translatePoint(d3.mouse(this), settings.scale, settings.translate)
+            var point = translatePoint(d3.mouse(this), settings.scale * settings.projectedScale, settings.translate),
+                topojsonPoint = settings.projection ? settings.projection.invert(point) : point
 
             var parameters = {
                 scale: settings.scale,
                 translate: settings.translate,
                 width: settings.width,
                 height: settings.height,
-                map: settings.map
+                map: settings.map,
+                projection: settings.projection,
+                projectedScale: settings.projectedScale
             }
             for (var i in settings.data) {
                 var element = settings.data[i]
                 if (!element.events || !element.events.click)
                     continue
 
-                var lookup = element.lookupTree.search([point[0], point[1], point[0], point[1]])
+                var lookup = element.lookupTree.search({
+                    minX: point[0],
+                    minY: point[1],
+                    maxX: point[0],
+                    maxY: point[1]
+                })
                 var isInside = false
                 for (var j in lookup) {
-                    var feature = lookup[j][4]
-                    if (d3.geoContains(feature, settings.projection.invert(point))) {
+                    var feature = lookup[j].polygon
+                    if (d3.geoContains(feature, topojsonPoint)) {
                         element.events.click(parameters, feature)
                         isInside = true
                     }
@@ -381,7 +432,9 @@ var ZoomableCanvasMap;
                 translate: settings.translate,
                 width: settings.width,
                 height: settings.height,
-                map: settings.map
+                map: settings.map,
+                projection: settings.projection,
+                projectedScale: settings.projectedScale
             }
             for (var i in settings.data) {
                 var element = settings.data[i]
@@ -393,26 +446,35 @@ var ZoomableCanvasMap;
         }
 
         function hover() {
-            var point = translatePoint(d3.mouse(this), settings.scale, settings.translate),
+            var point = translatePoint(d3.mouse(this), settings.scale * settings.projectedScale, settings.translate),
                 parameters = {
                     scale: settings.scale,
                     translate: settings.translate,
                     width: settings.width,
                     height: settings.height,
-                    map: settings.map
-                }
-
+                    map: settings.map,
+                    projection: settings.projection,
+                    projectedScale: settings.projectedScale
+                },
+                topojsonPoint = settings.projection ? settings.projection.invert(point) : point
+            //console.log(topojsonPoint)
             for (var i in settings.data) {
                 var element = settings.data[i]
+                element.hoverElement = false
                 if (!element.events || !element.events.hover ||
-                    (element.hoverElement && d3.geoContains(element.hoverElement, settings.projection.invert(point)))) {
+                    (element.hoverElement && d3.geoContains(element.hoverElement, topojsonPoint))) {
                     continue
                 }
-                element.hoverElement = false
-                var lookup = element.lookupTree.search([point[0], point[1], point[0], point[1]])
+                var lookup = element.lookupTree.search({
+                    minX: point[0],
+                    minY: point[1],
+                    maxX: point[0],
+                    maxY: point[1]
+                })
                 for (var j in lookup) {
-                    var feature = lookup[j][4]
-                    if (d3.geoContains(feature, settings.projection.invert(point))) {
+                    var feature = lookup[j].polygon
+                    //console.log(d3.geoContains(feature, topojsonPoint));
+                    if (d3.geoContains(feature, topojsonPoint)) {
                         element.hoverElement = feature
                         break
                     }
@@ -428,7 +490,7 @@ var ZoomableCanvasMap;
         }
     }
 
-    StaticCanvasMap = function(parameters) {
+    function StaticCanvasMap(parameters) {
         var map = new CanvasMap(parameters)
 
         this.init = function() {
@@ -467,13 +529,13 @@ var ZoomableCanvasMap;
             // Auto set scale=1, translate[0, 0] image as default return
             var currentImage = cache.length > 0 ? cache[0] : null
             for (var i in cache) {
-                var image = cache[i]
-                var imageBB = [
-                    - image.translate[0],
-                    - image.translate[1],
-                    settings.width / image.scale - image.translate[0],
-                    settings.height / image.scale - image.translate[1]
-                ]
+                var image = cache[i],
+                    imageBB = [
+                        - image.translate[0],
+                        - image.translate[1],
+                        settings.width / image.scale - image.translate[0],
+                        settings.height / image.scale - image.translate[1]
+                    ]
                 if (imageBB[0] <= bbox[0] &&
                     imageBB[1] <= bbox[1] &&
                     imageBB[2] >= bbox[2] &&
@@ -486,11 +548,11 @@ var ZoomableCanvasMap;
         }
     }
 
-    ZoomableCanvasMap = function(parameters) {
+    function ZoomableCanvasMap(parameters) {
         var map = new CanvasMap(parameters),
             simplify = d3.geoTransform({
                 point: function(x, y, z) {
-                    if (z >= area) this.stream.point(x, y)
+                    if (!z || z >= area) this.stream.point(x, y)
                 }
             }),
             area = 0,
@@ -499,7 +561,9 @@ var ZoomableCanvasMap;
             settings = map.settings(),
             dataPath = d3.geoPath().projection({
                 stream: function(s) {
-                    return simplify.stream(settings.projection.stream(s))
+                    if (settings.projection)
+                        return simplify.stream(settings.projection.stream(s))
+                    return simplify.stream(s)
                 }
             }),
             imageCache = new ImageCache({
@@ -514,13 +578,14 @@ var ZoomableCanvasMap;
         this.init = function() {
             map.init()
 
-            canvas = d3.select(settings.element)
-                .append("canvas")
+            canvas = d3.select(settings.element).append("canvas")
             context = canvas.node().getContext("2d")
-            area = 1 / settings.projection.scale() / settings.ratio / 20
+            area = 1 / settings.ratio
+            if (settings.projection)
+                area = area / settings.projection.scale() / 25
 
-            canvas.attr("width", settings.width * settings.ratio)
-            canvas.attr("height", settings.height * settings.ratio)
+            canvas.attr("width", settings.width * settings.ratio / settings.projectedScale)
+            canvas.attr("height", settings.height * settings.ratio / settings.projectedScale)
             canvas.style("width", settings.width + "px")
             canvas.style("height", settings.height + "px")
             canvas.style("display", "none")
@@ -534,14 +599,19 @@ var ZoomableCanvasMap;
                 scale: settings.scale,
                 translate: settings.translate
             })
+
+            createRTrees(settings.data, dataPath)
         }
         this.paint = function() {
             map.paint()
         }
         function scaleZoom(scale, translate) {
+            // We can just mutex with a standard variable, because JS is single threaded, yay!
+            // The mutex is needed not to start multiple d3 transitions.
             if (busy) {
                 return
             }
+            busy = true
             if (nearEqual(scale, settings.scale) &&
                 nearEqual(translate[0], settings.translate[0]) &&
                 nearEqual(translate[1], settings.translate[1])) {
@@ -551,23 +621,30 @@ var ZoomableCanvasMap;
             if (scale == 1 && settings.scale == 1 &&
                 !translate[0] && !translate[1] &&
                 !settings.translate[0] && !settings.translate[1]) {
+                busy = false
                 return
             }
-            busy = true
-            area = 1 / settings.projection.scale() / scale / settings.ratio / 20
+            area = 1 / scale / settings.ratio
+            if (settings.projection)
+                area = area / settings.projection.scale() / 25
 
             context.save()
             context.scale(scale * settings.ratio, scale * settings.ratio)
             context.translate(translate[0], translate[1])
-            context.clearRect(- translate[0], - translate[1], settings.width * settings.ratio, settings.height * settings.ratio)
+            context.clearRect(- translate[0], - translate[1],
+                settings.width * settings.ratio / settings.projectedScale,
+                settings.height * settings.ratio / settings.projectedScale)
             var parameters = {
                 path: dataPath,
                 context: context,
                 scale: scale,
+                projectedScale: settings.projectedScale,
                 translate: translate,
                 width: settings.width,
                 height: settings.height,
-                map: settings.map
+                map: settings.map,
+                projection: settings.projection,
+                projectedScale: settings.projectedScale
             }
 
             var image = imageCache.getImage({
@@ -575,8 +652,7 @@ var ZoomableCanvasMap;
                 translate: translate
             })
             if (!image) {
-                var background = new Image(),
-                    partialPainter = new PartialPainter(settings.data, parameters)
+                var partialPainter = new PartialPainter(settings.data, parameters)
             }
 
             var translatedOne = translatePoint([settings.width, settings.height], scale, translate),
@@ -602,11 +678,10 @@ var ZoomableCanvasMap;
                         oldScale = settings.scale
                     return function(t) {
                         settings.scale = i(t)
-                        var newTranslate = [
+                        settings.translate = [
                             oldTranslate[0] + (translate[0] - oldTranslate[0]) / (scale - oldScale) * (i(t) - oldScale) * scale / i(t),
                             oldTranslate[1] + (translate[1] - oldTranslate[1]) / (scale - oldScale) * (i(t) - oldScale) * scale / i(t),
                         ]
-                        settings.translate = newTranslate
                         map.paint()
                         !image && partialPainter.renderNext()
                     }
@@ -624,6 +699,8 @@ var ZoomableCanvasMap;
                     } else {
                         map.paint()
                         partialPainter.finish()
+
+                        var background = new Image()
                         background.onload = function() {
                             context.restore()
                             imageCache.addImage({
@@ -653,14 +730,21 @@ var ZoomableCanvasMap;
                 dy = bounds[1][1] - bounds[0][1],
                 bx = (bounds[0][0] + bounds[1][0]) / 2,
                 by = (bounds[0][1] + bounds[1][1]) / 2,
-                scale = settings.zoomScale *
+                scale = settings.zoomScale / settings.projectedScale *
                     Math.min(settings.width / dx, settings.height / dy),
-                translate = [-bx + settings.width / scale / 2,
-                             -by + settings.height / scale / 2]
+                translate = [-bx + settings.width / settings.projectedScale / scale / 2,
+                             -by + settings.height / settings.projectedScale / scale / 2]
+
             scaleZoom.call(this, scale, translate)
         }
-        this.settings = function(d){
-            return map.settings()
+    }
+    if (typeof module !== 'undefined') {
+        module.exports = {
+            StaticCanvasMap: StaticCanvasMap,
+            ZoomableCanvasMap: ZoomableCanvasMap
         }
+    } else {
+        window.StaticCanvasMap = StaticCanvasMap
+        window.ZoomableCanvasMap = ZoomableCanvasMap
     }
 }()

@@ -16,17 +16,15 @@ Now every time the canvas needs a repaint (e.g. for hover effects), Spam enters 
 In order to get the most out of Spam, we encourage you to think about which parts of your map are static and dynamic beforehand and then use the appropriate callbacks. The more code runs in the 'static' functions, the faster Spam will become.
 
 ## Getting started
-Spam depends on [D3](https://github.com/mbostock/d3), [TopoJSON](https://github.com/mbostock/topojson) and [rbush](https://github.com/mourner/rbush).
+Spam depends on [D3](https://github.com/mbostock/d3), [TopoJSON](https://github.com/mbostock/topojson) and [rbush](https://github.com/mourner/rbush) and it's available on npm (`npm install spamjs`, [Browserify example](http://bl.ocks.org/martgnz/867c95c3b13ac538ad2a64945bc5cf80)), bower (`bower install spam`) and with a normal script tag.
 
-You can install it using bower with `bower install spam`.
-
-Clone the repository ([or download the zip](https://github.com/newsappsio/spam/releases/download/v1.0.0/spam.zip)) and include `spam.js` after D3, TopoJSON and rbush in your website.
+Clone the repository ([or download the zip](https://github.com/newsappsio/spam/releases/download/v1.1.0/spam.zip)) and include `spam.js` after D3, TopoJSON and rbush in your website.
 
 ````html
-<script src="lib/d3.min.js"></script>
-<script src="lib/topojson.min.js"></script>
-<script src="rbush.min.js"></script>
-<script src="spam.js"></script>
+<script src="//d3js.org/d3.v3.min.js"></script>
+<script src="//d3js.org/topojson.v1.min.js"></script>
+<script src="//cdn.rawgit.com/mourner/rbush/master/rbush.js"></script>
+<script src="//cdn.rawgit.com/newsappsio/spam/master/spam.min.js"></script>
 ```
 
 Here's the most basic map you can do:

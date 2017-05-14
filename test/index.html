@@ -2,14 +2,17 @@
 <html lang="es-ES">
     <head>
         <style>
+            /*.js-map {
+                width: 400px;
+            }*/
         </style>
     </head>
     <body>
         <div class="js-map"></div>
 
-        <script src="../lib/d3.v4.min.js"></script>
-        <script src="../lib/topojson.min.js"></script>
-        <script src="rbush.js"></script>
+        <script src="../node_modules/d3/build/d3.js"></script>
+        <script src="../node_modules/topojson/build/topojson.min.js"></script>
+        <script src="../node_modules/rbush/rbush.js"></script>
         <script src="../spam.js"></script>
         <script type='text/javascript'>
         /*
@@ -28,21 +31,28 @@
         }
         */
             // TODO queue.js
-            d3.json("map.json", function(error, d) {
+            d3.json("municipalities.json", function(error, d) {
                 d3.json("roads.json", function(error, roads) {
                     topojson.presimplify(d)
                     topojson.presimplify(roads)
+                    console.log(d)
+                    console.log(d3.select(".js-map").node().getBoundingClientRect().width)
 
                     var hover = null
                     var map = new ZoomableCanvasMap({
                         element: ".js-map",
+                        projection: null, // TODO how to automagically detect this?
                         data: [{
-                            features: topojson.feature(d, d.objects["provincias"]),
+                            features: topojson.feature(d, d.objects["municipalities"]),
                             static: {
+                                prepaint: function(parameters) {
+                                    console.log("PRE")
+                                },
                                 paintfeature: function(parameters, d) {
-                                    if (d.properties.name[0] < "H")
+                                    //console.log(d)
+                                    /*if (d.properties.name[0] < "H")
                                         parameters.context.fillStyle = "blue"
-                                    else
+                                    else*/
                                         parameters.context.fillStyle = "red"
                                     parameters.context.fill()
                                 }
@@ -52,7 +62,7 @@
                                     if (!hover)
                                         return
                                     parameters.context.beginPath()
-                                    parameters.context.lineWidth = 1 / parameters.scale
+                                    parameters.context.lineWidth = 1 / parameters.scale / parameters.projectedScale
                                     parameters.path(hover)
                                     parameters.context.stroke()
                                 }
@@ -60,16 +70,19 @@
                             events: {
                                 click: function(parameters, d) { // TODO replace map with parameters?
                                     console.log("CLICK")
+                                    //console.log(parameters)
                                     parameters.map.zoom(d)
                                 },
                                 hover: function(parameters, d) {
-                                    if (d)
-                                        console.log("HOVER " + d.properties.name)
+                                    //if (d)
+                                    //    console.log("HOVER " + d.properties.name)
+                                    //console.log(d);
                                     hover = d
+                                    log
                                     parameters.map.paint()
                                 }
                             }
-                        },
+                        }/*,
                         {
                             features: topojson.feature(roads, roads.objects["roads"]),
                             static: {
@@ -79,9 +92,11 @@
                                     parameters.context.stroke()
                                 }
                             }
-                        }]
+                        }*/]
                     })
+
                     map.init()
+                    //console.log(map)
                 })
             })
         </script>
