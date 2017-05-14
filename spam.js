@@ -4,8 +4,6 @@ var ZoomableCanvasMap;
 ! function() {
     "use strict";
 
-    // remove old functions inside and inRing thanks to d3v4 d3.geoContains function
-    // ...
     function maxBounds(one, two) {
         var bounds = two
         if (one[0][0] < two[0][0])
