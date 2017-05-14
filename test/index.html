@@ -70,15 +70,13 @@
                             events: {
                                 click: function(parameters, d) { // TODO replace map with parameters?
                                     console.log("CLICK")
-                                    //console.log(parameters)
+                                    console.log(parameters)
                                     parameters.map.zoom(d)
                                 },
                                 hover: function(parameters, d) {
                                     //if (d)
                                     //    console.log("HOVER " + d.properties.name)
-                                    //console.log(d);
                                     hover = d
-                                    log
                                     parameters.map.paint()
                                 }
                             }
