@@ -12,6 +12,49 @@
             rbush = window.rbush
     }
 
+    // TODO use turf inside as a dependency?
+    // Copied from turf.inside
+    function inside(pt, polygon) {
+        var polys = polygon.geometry.coordinates
+        // normalize to multipolygon
+        if (polygon.geometry.type === 'Polygon')
+            polys = [polys]
+
+        var insidePoly = false
+        var i = 0
+        while (i < polys.length && !insidePoly) {
+            // check if it is in the outer ring first
+            if (inRing(pt, polys[i][0])) {
+                var inHole = false
+                var k = 1
+                // check for the point in any of the holes
+                while (k < polys[i].length && !inHole) {
+                    if (inRing(pt, polys[i][k])) {
+                        inHole = true
+                    }
+                    k++
+                }
+                if(!inHole)
+                    insidePoly = true
+            }
+            i++
+        }
+        return insidePoly
+    }
+
+    // pt is [x,y] and ring is [[x,y], [x,y],..]
+    function inRing (pt, ring) {
+        var isInside = false
+        for (var i = 0, j = ring.length - 1; i < ring.length; j = i++) {
+            var xi = ring[i][0], yi = ring[i][1]
+            var xj = ring[j][0], yj = ring[j][1]
+            var intersect = ((yi > pt[1]) !== (yj > pt[1])) &&
+                (pt[0] < (xj - xi) * (pt[1] - yi) / (yj - yi) + xi)
+            if (intersect) isInside = !isInside
+        }
+        return isInside
+    }
+
     function maxBounds(one, two) {
         var bounds = two
         bounds[0][0] = Math.min(one[0][0], two[0][0])
@@ -361,7 +404,7 @@
                 var isInside = false
                 for (var j in lookup) {
                     var feature = lookup[j].polygon
-                    if (d3.geoContains(feature, topojsonPoint)) {
+                    if (inside(topojsonPoint, feature)) {
                         element.events.click(parameters, feature)
                         isInside = true
                     }
@@ -403,7 +446,7 @@
                 //console.log(topojsonPoint)
             for (var i in settings.data) {
                 var element = settings.data[i]
-                if (!element.events || !element.events.hover || (element.hoverElement && d3.geoContains(element.hoverElement, topojsonPoint))) {
+                if (!element.events || !element.events.hover || (element.hoverElement && inside(topojsonPoint, element.hoverElement))) {
                     continue
                 }
                 element.hoverElement = false
@@ -415,7 +458,7 @@
                 })
                 for (var j in lookup) {
                     var feature = lookup[j].polygon
-                    if (d3.geoContains(feature, topojsonPoint)) {
+                    if (inside(topojsonPoint, feature)) {
                         element.hoverElement = feature
                         break
                     }
