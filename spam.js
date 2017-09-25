@@ -12,48 +12,6 @@
             rbush = window.rbush
     }
 
-    // TODO use turf inside as a dependency?
-    // Copied from turf.inside
-    function inside(pt, polygon) {
-        var polys = polygon.geometry.coordinates
-        // normalize to multipolygon
-        if (polygon.geometry.type === 'Polygon') polys = [polys]
-
-        var insidePoly = false
-        var i = 0
-        while (i < polys.length && !insidePoly) {
-            // check if it is in the outer ring first
-            if (inRing(pt, polys[i][0])) {
-                var inHole = false
-                var k = 1
-                // check for the point in any of the holes
-                while (k < polys[i].length && !inHole) {
-                    if (inRing(pt, polys[i][k])) {
-                        inHole = true
-                    }
-                    k++
-                }
-                if (!inHole) insidePoly = true
-            }
-            i++
-        }
-        return insidePoly
-    }
-
-    // pt is [x,y] and ring is [[x,y], [x,y],..]
-    function inRing(pt, ring) {
-        var isInside = false
-        for (var i = 0, j = ring.length - 1; i < ring.length; j = i++) {
-            var xi = ring[i][0],
-                yi = ring[i][1]
-            var xj = ring[j][0],
-                yj = ring[j][1]
-            var intersect = ((yi > pt[1]) !== (yj > pt[1])) && (pt[0] < (xj - xi) * (pt[1] - yi) / (yj - yi) + xi)
-            if (intersect) isInside = !isInside
-        }
-        return isInside
-    }
-
     function maxBounds(one, two) {
         var bounds = two
         bounds[0][0] = Math.min(one[0][0], two[0][0])
@@ -201,7 +159,7 @@
             backgroundTranslate: [0, 0],
             map: this
         }, parameters),
-            simplify = d3.geo.transform({
+            simplify = d3.geoTransform({
                 point: function(x, y, z) {
                     if (!z || z >= settings.area) {
                         this.stream.point(x, y)
@@ -217,13 +175,13 @@
                 [-Infinity, - Infinity]
             ]
             for (var i in settings.data) {
-                b = maxBounds(b, d3.geo.bounds(settings.data[i].features))
+                b = maxBounds(b, d3.geoBounds(settings.data[i].features))
             }
-            settings.projection = d3.geo.mercator()
+            settings.projection = d3.geoMercator()
                 .scale(1)
                 .center([(b[1][0] + b[0][0]) / 2, (b[1][1] + b[0][1]) / 2])
         }
-        var dataPath = d3.geo.path().projection({
+        var dataPath = d3.geoPath().projection({
             stream: function(s) {
                 if (settings.projection) return simplify.stream(settings.projection.stream(s))
                 return simplify.stream(s)
@@ -403,7 +361,7 @@
                 var isInside = false
                 for (var j in lookup) {
                     var feature = lookup[j].polygon
-                    if (inside(topojsonPoint, feature)) {
+                    if (d3.geoContains(feature, topojsonPoint)) {
                         element.events.click(parameters, feature)
                         isInside = true
                     }
@@ -445,7 +403,7 @@
                 //console.log(topojsonPoint)
             for (var i in settings.data) {
                 var element = settings.data[i]
-                if (!element.events || !element.events.hover || (element.hoverElement && inside(topojsonPoint, element.hoverElement))) {
+                if (!element.events || !element.events.hover || (element.hoverElement && d3.geoContains(element.hoverElement, topojsonPoint))) {
                     continue
                 }
                 element.hoverElement = false
@@ -457,7 +415,7 @@
                 })
                 for (var j in lookup) {
                     var feature = lookup[j].polygon
-                    if (inside(topojsonPoint, feature)) {
+                    if (d3.geoContains(feature, topojsonPoint)) {
                         element.hoverElement = feature
                         break
                     }
@@ -524,7 +482,7 @@
 
         function ZoomableCanvasMap(parameters) {
             var map = new CanvasMap(parameters),
-                simplify = d3.geo.transform({
+                simplify = d3.geoTransform({
                     point: function(x, y, z) {
                         if (!z || z >= area) this.stream.point(x, y)
                     }
@@ -533,7 +491,7 @@
                 canvas = null,
                 context = null,
                 settings = map.settings(),
-                dataPath = d3.geo.path().projection({
+                dataPath = d3.geoPath().projection({
                     stream: function(s) {
                         if (settings.projection) return simplify.stream(settings.projection.stream(s))
                         return simplify.stream(s)
@@ -638,7 +596,7 @@
                 }
                 d3.transition()
                     .duration(300)
-                    .ease("linear")
+                    .ease(d3.easeLinear)
                     .tween("zoom", function() {
                     var i = d3.interpolateNumber(settings.scale, scale),
                         oldTranslate = settings.translate,
@@ -648,10 +606,11 @@
                         settings.translate = [
                         oldTranslate[0] + (translate[0] - oldTranslate[0]) / (scale - oldScale) * (i(t) - oldScale) * scale / i(t),
                         oldTranslate[1] + (translate[1] - oldTranslate[1]) / (scale - oldScale) * (i(t) - oldScale) * scale / i(t), ]
-                        map.paint()!image && partialPainter.renderNext()
+                        map.paint()
+                        !image && partialPainter.renderNext()
                     }
                 })
-                    .each("end", function() {
+                    .on("end", function() {
                     settings.scale = scale
                     settings.translate = translate
 
@@ -710,4 +669,4 @@
         window.StaticCanvasMap = StaticCanvasMap
         window.ZoomableCanvasMap = ZoomableCanvasMap
     }
-}() 
+}()
