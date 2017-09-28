@@ -109,8 +109,8 @@
             j = 0,
             element = data[index],
             currentLookup = element.lookupTree.search({
-                minX: -parameters.translate[0],
-                minY: -parameters.translate[1],
+                minX: - parameters.translate[0],
+                minY: - parameters.translate[1],
                 maxX: parameters.width / parameters.scale / parameters.projectedScale - parameters.translate[0],
                 maxY: parameters.height / parameters.scale / parameters.projectedScale - parameters.translate[1]
             })
@@ -124,8 +124,8 @@
                 return false
             element = data[index]
             currentLookup = element.lookupTree.search({
-                minX: -parameters.translate[0],
-                minY: -parameters.translate[1],
+                minX: - parameters.translate[0],
+                minY: - parameters.translate[1],
                 maxX: parameters.width / parameters.scale / parameters.projectedScale - parameters.translate[0],
                 maxY: parameters.height / parameters.scale / parameters.projectedScale - parameters.translate[1]
             })
