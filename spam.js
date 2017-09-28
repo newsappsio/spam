@@ -115,23 +115,23 @@
                 maxY: parameters.height / parameters.scale / parameters.projectedScale - parameters.translate[1]
             })
 
-            function selectNextIndex() {
+        function selectNextIndex() {
+            index++
+            while (index < data.length && !data[index].static) {
                 index++
-                while (index < data.length && !data[index].static) {
-                    index++
-                }
-                if (index >= data.length)
-                    return false
-                element = data[index]
-                currentLookup = element.lookupTree.search({
-                    minX: -parameters.translate[0],
-                    minY: -parameters.translate[1],
-                    maxX: parameters.width / parameters.scale / parameters.projectedScale - parameters.translate[0],
-                    maxY: parameters.height / parameters.scale / parameters.projectedScale - parameters.translate[1]
-                })
-                j = 0
-                return true
             }
+            if (index >= data.length)
+                return false
+            element = data[index]
+            currentLookup = element.lookupTree.search({
+                minX: -parameters.translate[0],
+                minY: -parameters.translate[1],
+                maxX: parameters.width / parameters.scale / parameters.projectedScale - parameters.translate[0],
+                maxY: parameters.height / parameters.scale / parameters.projectedScale - parameters.translate[1]
+            })
+            j = 0
+            return true
+        }
 
         this.hasNext = function() {
             return index < data.length && j < currentLookup.length
