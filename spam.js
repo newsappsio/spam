@@ -219,7 +219,7 @@
 
         if (!parameters.hasOwnProperty("projection")) {
             var b = [[Infinity, Infinity],
-                     [-Infinity, - Infinity]]
+                     [-Infinity, -Infinity]]
             for (var i in settings.data) {
                 b = maxBounds(b, d3.geoBounds(settings.data[i].features))
             }
@@ -235,7 +235,7 @@
             }
         })
         var b = [[Infinity, Infinity],
-                 [-Infinity, - Infinity]]
+                 [-Infinity, -Infinity]]
         for (var i in settings.data) {
             b = maxBounds(b, dataPath.bounds(settings.data[i].features))
         }
@@ -341,11 +341,11 @@
             context.scale(settings.scale * settings.ratio, settings.scale * settings.ratio)
             context.translate(settings.translate[0], settings.translate[1])
 
-            context.clearRect(-settings.translate[0], - settings.translate[1],
+            context.clearRect(-settings.translate[0], -settings.translate[1],
                 settings.width * settings.ratio / settings.projectedScale,
                 settings.height * settings.ratio / settings.projectedScale)
 
-            context.rect(-settings.translate[0], - settings.translate[1],
+            context.rect(-settings.translate[0], -settings.translate[1],
                 settings.width / settings.scale / settings.projectedScale,
                 settings.height / settings.scale / settings.projectedScale)
             context.clip()
@@ -717,7 +717,7 @@
                         background.src = canvas.node().toDataURL()
                     }
                     busy = false
-            })
+                })
         }
         this.zoom = function(d) {
             if (!d) {
