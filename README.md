@@ -23,8 +23,8 @@ Clone the repository ([or download the zip](https://github.com/newsappsio/spam/r
 ```
 <script src="//d3js.org/d3.v3.min.js"></script>
 <script src="//d3js.org/topojson.v1.min.js"></script>
-<script src="//cdn.rawgit.com/mourner/rbush/master/rbush.js"></script>
-<script src="//cdn.rawgit.com/newsappsio/spam/master/spam.min.js"></script>
+<script src="//cdn.combinatronics.com/mourner/rbush/master/rbush.js"></script>
+<script src="//cdn.combinatronics.com/newsappsio/spam/master/spam.min.js"></script>
 ```
 
 Here's the most basic map you can do:
