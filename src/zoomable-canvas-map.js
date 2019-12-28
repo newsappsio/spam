@@ -25,7 +25,7 @@ export default class ZoomableCanvasMap {
     this.canvas = null;
     this.context = null;
 
-    this.settings = this.map.settings();
+    this.settings = this.map.settings;
     this.dataPath = geoPath().projection({
       stream: s => {
         if (this.settings.projection)
@@ -159,7 +159,7 @@ export default class ZoomableCanvasMap {
         this.settings.projectedScale
     );
 
-    var parameters = {
+    const parameters = {
       path: this.dataPath,
       context: this.context,
       scale: scale,
@@ -172,16 +172,16 @@ export default class ZoomableCanvasMap {
       projectedScale: this.settings.projectedScale
     };
 
-    var image = this.imageCache.getImage({
+    const image = this.imageCache.getImage({
       scale: scale,
       translate: translate
     });
 
     if (!image) {
-      var partialPainter = new PartialPainter(this.settings.data, parameters);
+      this.partialPainter = new PartialPainter(this.settings.data, parameters);
     }
 
-    var translatedOne = translatePoint(
+    const translatedOne = translatePoint(
         [this.settings.width, this.settings.height],
         scale,
         translate
@@ -192,14 +192,14 @@ export default class ZoomableCanvasMap {
         this.settings.translate
       );
 
-    var bbox = [
+    const bbox = [
       Math.min(-translate[0], -this.settings.translate[0]),
       Math.min(-translate[1], -this.settings.translate[1]),
       Math.max(translatedOne[0], translatedTwo[0]),
       Math.max(translatedOne[1], translatedTwo[1])
     ];
 
-    var zoomImage = this.imageCache.getFittingImage(bbox);
+    const zoomImage = this.imageCache.getFittingImage(bbox);
 
     if (zoomImage) {
       this.settings.background = zoomImage.image;
@@ -211,9 +211,9 @@ export default class ZoomableCanvasMap {
       .duration(300)
       .ease(easeLinear)
       .tween("zoom", () => {
-        var i = interpolateNumber(this.settings.scale, scale),
-          oldTranslate = this.settings.translate,
-          oldScale = this.settings.scale;
+        const i = interpolateNumber(this.settings.scale, scale);
+        const oldTranslate = this.settings.translate;
+        const oldScale = this.settings.scale;
 
         return t => {
           this.settings.scale = i(t);
@@ -231,7 +231,7 @@ export default class ZoomableCanvasMap {
           ];
 
           this.map.paint();
-          !image && partialPainter.renderNext();
+          !image && this.partialPainter.renderNext();
         };
       })
       .on("end", () => {
@@ -246,9 +246,9 @@ export default class ZoomableCanvasMap {
           this.map.paint();
         } else {
           this.map.paint();
-          partialPainter.finish();
+          this.partialPainter.finish();
 
-          var background = new Image();
+          const background = new Image();
 
           background.onload = () => {
             this.context.restore();
