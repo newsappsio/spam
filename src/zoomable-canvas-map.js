@@ -1,4 +1,8 @@
-import * as d3 from "d3";
+import { interpolateNumber } from "d3-interpolate";
+import { transition } from "d3-transition";
+import { easeLinear } from "d3-ease";
+import { select } from "d3-selection";
+import { geoTransform, geoPath } from "d3-geo";
 
 import nearEqual from "./util/near-equal";
 import translatePoint from "./util/translate-point";
@@ -10,7 +14,7 @@ import { CanvasMap } from "./canvas-map";
 
 export default class ZoomableCanvasMap {
   constructor(parameters) {
-    const simplify = d3.geoTransform({
+    const simplify = geoTransform({
       point: function(x, y, z) {
         if (!z || z >= area) this.stream.point(x, y);
       }
@@ -22,7 +26,7 @@ export default class ZoomableCanvasMap {
     this.context = null;
 
     this.settings = this.map.settings();
-    this.dataPath = d3.geoPath().projection({
+    this.dataPath = geoPath().projection({
       stream: s => {
         if (this.settings.projection)
           return simplify.stream(this.settings.projection.stream(s));
@@ -44,7 +48,7 @@ export default class ZoomableCanvasMap {
   init() {
     this.map.init();
 
-    this.canvas = d3.select(this.settings.element).append("canvas");
+    this.canvas = select(this.settings.element).append("canvas");
     this.context = this.canvas.node().getContext("2d");
     this.area = 1 / this.settings.ratio;
 
@@ -203,11 +207,11 @@ export default class ZoomableCanvasMap {
       this.settings.backgroundTranslate = zoomImage.translate;
     }
 
-    d3.transition()
+    transition()
       .duration(300)
-      .ease(d3.easeLinear)
+      .ease(easeLinear)
       .tween("zoom", () => {
-        var i = d3.interpolateNumber(this.settings.scale, scale),
+        var i = interpolateNumber(this.settings.scale, scale),
           oldTranslate = this.settings.translate,
           oldScale = this.settings.scale;
 

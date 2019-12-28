@@ -1,4 +1,5 @@
-import * as d3 from "d3";
+import { select, mouse } from "d3-selection";
+import { geoTransform, geoPath, geoBounds, geoMercator } from "d3-geo";
 
 import translatePoint from "./util/translate-point";
 import paintFeature from "./util/paint-feature";
@@ -83,8 +84,7 @@ function extend(extension, obj) {
 function CanvasMap(parameters) {
   var settings = extend(
       {
-        width: d3
-          .select(parameters.element)
+        width: select(parameters.element)
           .node()
           .getBoundingClientRect().width,
         ratio: 1,
@@ -99,7 +99,7 @@ function CanvasMap(parameters) {
       },
       parameters
     ),
-    simplify = d3.geoTransform({
+    simplify = geoTransform({
       point: function(x, y, z) {
         if (!z || z >= settings.area) {
           this.stream.point(x, y);
@@ -115,14 +115,13 @@ function CanvasMap(parameters) {
       [-Infinity, -Infinity]
     ];
     for (var i in settings.data) {
-      b = maxBounds(b, d3.geoBounds(settings.data[i].features));
+      b = maxBounds(b, geoBounds(settings.data[i].features));
     }
-    settings.projection = d3
-      .geoMercator()
+    settings.projection = geoMercator()
       .scale(1)
       .center([(b[1][0] + b[0][0]) / 2, (b[1][1] + b[0][1]) / 2]);
   }
-  var dataPath = d3.geoPath().projection({
+  var dataPath = geoPath().projection({
     stream: function(s) {
       if (settings.projection)
         return simplify.stream(settings.projection.stream(s));
@@ -154,10 +153,10 @@ function CanvasMap(parameters) {
   } else if (!settings.height) {
     settings.height = Math.ceil(dy / 0.9);
   }
-  d3.select(settings.parameters).attr("height", settings.height);
+  select(settings.parameters).attr("height", settings.height);
 
   function init() {
-    canvas = d3.select(settings.element).append("canvas");
+    canvas = select(settings.element).append("canvas");
     context = canvas.node().getContext("2d");
 
     var devicePixelRatio = window.devicePixelRatio || 1,
@@ -315,7 +314,7 @@ function CanvasMap(parameters) {
 
   function click() {
     var point = translatePoint(
-        d3.mouse(this),
+        mouse(this),
         settings.scale * settings.projectedScale,
         settings.translate
       ),
@@ -374,7 +373,7 @@ function CanvasMap(parameters) {
 
   function hover() {
     var point = translatePoint(
-        d3.mouse(this),
+        mouse(this),
         settings.scale * settings.projectedScale,
         settings.translate
       ),

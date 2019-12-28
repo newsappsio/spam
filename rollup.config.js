@@ -8,15 +8,19 @@ const plugins = [resolve(), buble(), filesize()];
 
 const config = {
   input: "index.js",
-  external: "d3",
+  external: Object.keys(meta.dependencies || {}).filter(key =>
+    /^d3-/.test(key)
+  ),
   output: {
     name: "Spam",
     format: "umd",
     file: "dist/spam.js",
-    globals: {
-      d3: "d3",
-      rbush: "RBush"
-    }
+    globals: Object.assign(
+      {},
+      ...Object.keys(meta.dependencies || {})
+        .filter(key => /^d3-/.test(key))
+        .map(key => ({ [key]: "d3" }))
+    )
   },
   plugins
 };
