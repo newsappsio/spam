@@ -1,6 +1,6 @@
 import nearEqual from "./near-equal";
 
-function ImageCache(parameters) {
+export default function(parameters) {
   var cache = [],
     settings = parameters;
 
@@ -45,5 +45,3 @@ function ImageCache(parameters) {
     return currentImage;
   };
 }
-
-export { ImageCache };

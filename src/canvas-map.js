@@ -1,8 +1,8 @@
 import * as d3 from "d3";
-import RBush from "rbush";
 
-import translatePoint from "./translate-point";
-import paintFeature from "./paint-feature";
+import translatePoint from "./util/translate-point";
+import paintFeature from "./util/paint-feature";
+import createRTrees from "./util/create-r-trees";
 
 // TODO use turf inside as a dependency?
 // Copied from turf.inside
@@ -55,29 +55,6 @@ function maxBounds(one, two) {
   bounds[1][0] = Math.max(one[1][0], two[1][0]);
   bounds[1][1] = Math.max(one[1][1], two[1][1]);
   return bounds;
-}
-
-function createRTree(element, dataPath) {
-  element.lookupTree = new RBush(4);
-  var elements = [];
-
-  for (var j in element.features.features) {
-    var bounds = dataPath.bounds(element.features.features[j]);
-    elements.push({
-      minX: Math.floor(bounds[0][0]),
-      minY: Math.floor(bounds[0][1]),
-      maxX: Math.ceil(bounds[1][0]),
-      maxY: Math.ceil(bounds[1][1]),
-      polygon: element.features.features[j]
-    });
-  }
-  element.lookupTree.load(elements);
-}
-
-function createRTrees(data, dataPath) {
-  for (var i in data) {
-    data[i].lookupTree || createRTree(data[i], dataPath);
-  }
 }
 
 function paintBackgroundElement(element, parameters) {

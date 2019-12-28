@@ -1,6 +1,6 @@
 import paintFeature from "./paint-feature";
 
-function PartialPainter(data, parameters) {
+export default function(data, parameters) {
   var index = 0,
     j = 0,
     element = data[index],
@@ -74,5 +74,3 @@ function PartialPainter(data, parameters) {
     }
   };
 }
-
-export { PartialPainter };

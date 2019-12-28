@@ -3,22 +3,24 @@
 
 <body>
   <div class="js-map"></div>
-  <script src="https://d3js.org/d3.v4.min.js"></script>
-  <script src="https://d3js.org/topojson.v3.min.js"></script>
-  <script src="https://unpkg.com/rbush@3.0.1/rbush.min.js"></script>
+  <script src="d3.v5.min.js"></script>
+  <script src="topojson.v3.min.js"></script>
   <script src="../dist/spam.js"></script>
 
   <script type='text/javascript'>
-    d3.json("municipalities.json", function (error, d) {
-      d3.json("roads.json", function (error, roads) {
+    Promise.all([
+      d3.json('municipalities.json'),
+      d3.json('roads.json'),
+    ])
+      .catch(err => console.warn(err))
+      .then(([d, roads]) => {
         topojson.presimplify(d)
         topojson.presimplify(roads)
         console.log(d)
         console.log(d3.select(".js-map").node().getBoundingClientRect().width)
 
-
         var hover = null
-        var map = spam.ZoomableCanvasMap({
+        var map = new Spam.ZoomableCanvasMap({
           element: ".js-map",
           projection: null, // TODO how to automagically detect this?
           data: [{
@@ -48,9 +50,9 @@
             },
             events: {
               click: function (parameters, d) { // TODO replace map with parameters?
-                console.log("CLICK")
-                console.log(parameters)
-                parameters.map.zoom(d, parameters.context)
+                // console.log("CLICK")
+                // console.log(parameters)
+                parameters.map.zoom(d)
               },
               hover: function (parameters, d) {
                 //if (d)
@@ -59,23 +61,22 @@
                 parameters.map.paint()
               }
             }
-          }/*,
-                        {
-                            features: topojson.feature(roads, roads.objects["roads"]),
-                            static: {
-                                paintfeature: function(parameters, d) {
-                                    parameters.context.lineWidth = 1 / parameters.scale
-                                    parameters.context.strokeStyle = "black"
-                                    parameters.context.stroke()
-                                }
-                            }
-                        }*/]
+          },
+            // {
+            //   features: topojson.feature(roads, roads.objects["roads"]),
+            //   static: {
+            //     paintfeature: function (parameters, d) {
+            //       parameters.context.lineWidth = 1 / parameters.scale
+            //       parameters.context.strokeStyle = "black"
+            //       parameters.context.stroke()
+            //     }
+            //   }}
+          ]
         })
 
         map.init()
         console.log(map)
       })
-    })
   </script>
 </body>
 
