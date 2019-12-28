@@ -207,7 +207,7 @@
                 backgroundTranslate: [0, 0],
                 map: this
             }, parameters),
-            simplify = d3.geo.transform({
+            simplify = d3.geoTransform({
                 point: function(x, y, z) {
                     if (!z || z >= settings.area) {
                         this.stream.point(x, y)
@@ -221,13 +221,13 @@
             var b = [[Infinity, Infinity],
                      [-Infinity, -Infinity]]
             for (var i in settings.data) {
-                b = maxBounds(b, d3.geo.bounds(settings.data[i].features))
+                b = maxBounds(b, d3.geoBounds(settings.data[i].features))
             }
-            settings.projection = d3.geo.mercator()
+            settings.projection = d3.geoMercator()
                 .scale(1)
                 .center([(b[1][0] + b[0][0]) / 2, (b[1][1] + b[0][1]) / 2])
         }
-        var dataPath = d3.geo.path().projection({
+        var dataPath = d3.geoPath().projection({
             stream: function(s) {
                 if (settings.projection)
                     return simplify.stream(settings.projection.stream(s))
@@ -341,11 +341,11 @@
             context.scale(settings.scale * settings.ratio, settings.scale * settings.ratio)
             context.translate(settings.translate[0], settings.translate[1])
 
-            context.clearRect(- settings.translate[0], - settings.translate[1],
+            context.clearRect(-settings.translate[0], -settings.translate[1],
                 settings.width * settings.ratio / settings.projectedScale,
                 settings.height * settings.ratio / settings.projectedScale)
 
-            context.rect(- settings.translate[0], - settings.translate[1],
+            context.rect(-settings.translate[0], -settings.translate[1],
                 settings.width / settings.scale / settings.projectedScale,
                 settings.height / settings.scale / settings.projectedScale)
             context.clip()
@@ -457,7 +457,7 @@
                     projectedScale: settings.projectedScale
                 },
                 topojsonPoint = settings.projection ? settings.projection.invert(point) : point
-            //console.log(topojsonPoint)
+
             for (var i in settings.data) {
                 var element = settings.data[i]
                 if (!element.events || !element.events.hover ||
@@ -549,7 +549,7 @@
 
     function ZoomableCanvasMap(parameters) {
         var map = new CanvasMap(parameters),
-            simplify = d3.geo.transform({
+            simplify = d3.geoTransform({
                 point: function(x, y, z) {
                     if (!z || z >= area) this.stream.point(x, y)
                 }
@@ -558,7 +558,7 @@
             canvas = null,
             context = null,
             settings = map.settings(),
-            dataPath = d3.geo.path().projection({
+            dataPath = d3.geoPath().projection({
                 stream: function(s) {
                     if (settings.projection)
                         return simplify.stream(settings.projection.stream(s))
@@ -670,7 +670,7 @@
             }
             d3.transition()
                 .duration(300)
-                .ease("linear")
+                .ease(d3.easeLinear)
                 .tween("zoom", function() {
                     var i = d3.interpolateNumber(settings.scale, scale),
                         oldTranslate = settings.translate,
@@ -685,7 +685,7 @@
                         !image && partialPainter.renderNext()
                     }
                 })
-                .each("end", function() {
+                .on("end", function() {
                     settings.scale = scale
                     settings.translate = translate
 

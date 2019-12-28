@@ -20,7 +20,7 @@
   },
   "license": "MIT",
   "dependencies": {
-    "d3": "3.5.17",
+    "d3": "4",
     "rbush": "2.0.1",
     "topojson": "1.6.26"
   }
