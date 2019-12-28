@@ -12,16 +12,27 @@
   "author": {
     "name": "Lukas Appelhans & Martín González"
   },
-  "main": "spam.js",
-  "browser": "spam.js",
+  "scripts": {
+    "build": "rollup -c"
+  },
+  "main": "dist/spam.js",
+  "unpkg": "dist/spam.min.js",
+  "jsdelivr": "dist/spam.min.js",
+  "module": "index.js",
   "repository": {
     "type": "git",
     "url": "https://github.com/newsappsio/spam.git"
   },
-  "license": "MIT",
   "dependencies": {
     "d3": "4",
-    "rbush": "2.0.1",
-    "topojson": "1.6.26"
+    "rbush": "3"
+  },
+  "devDependencies": {
+    "@rollup/plugin-buble": "^0.21.0",
+    "@rollup/plugin-commonjs": "^11.0.0",
+    "@rollup/plugin-node-resolve": "^6.0.0",
+    "rollup": "^1.27.14",
+    "rollup-plugin-filesize": "^6.2.1",
+    "rollup-plugin-terser": "^5.1.3"
   }
 }

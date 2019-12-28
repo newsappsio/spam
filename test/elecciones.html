@@ -1,116 +1,119 @@
 <!doctype html>
 <html lang="es-ES">
-    <head>
-        <style>
-        </style>
-    </head>
-    <body>
-        <div class="js-map"></div>
 
-        <script src="../node_modules/d3/build/d3.min.js"></script>
-        <script src="../node_modules/topojson/build/topojson.min.js"></script>
-        <script src="../node_modules/rbush/rbush.js"></script>
-        <script src="../spam.js"></script>
-        <script type='text/javascript'>
-            // Ideas: list of polygons/features, have some prepaintCallback(context)? To set color and all?
-            // hoverCallback, for all?
-            // TODO: Hover mesh? (Mit paint callback? + hover callback?)
-            /*
-            we need some sort of base topojson element with the polygons mmh
-            [{
-                topojson: topojson,
-                prepaint: function(context) {
+<head>
+    <style>
+    </style>
+</head>
 
-                },
-                prefeature: function(context, d) {
+<body>
+    <div class="js-map"></div>
 
-                },
-                hover: function(d) { // TODO: Needs to get reworked, mouseover, mouseout or sth like that?
+    <script src="https://d3js.org/d3.v4.min.js"></script>
+    <script src="https://d3js.org/topojson.v3.min.js"></script>
+    <script src="https://unpkg.com/rbush@3.0.1/rbush.min.js"></script>
+    <script src="../dist/spam.js"></script>
+    <script type='text/javascript'>
+        // Ideas: list of polygons/features, have some prepaintCallback(context)? To set color and all?
+        // hoverCallback, for all?
+        // TODO: Hover mesh? (Mit paint callback? + hover callback?)
+        /*
+        we need some sort of base topojson element with the polygons mmh
+        [{
+            topojson: topojson,
+            prepaint: function(context) {
 
-                },
-                click: function(d) {
+            },
+            prefeature: function(context, d) {
 
-                }
+            },
+            hover: function(d) { // TODO: Needs to get reworked, mouseover, mouseout or sth like that?
+
+            },
+            click: function(d) {
+
             }
-            ]
-            // TODO: Then already paint in picture, partial paint?
-            // TODO: Different abstraction levels of classes? (=> rather not)
-            // TODO: One base class with just a paint() method? Which generates boilerplate canvas stuffe t
-            // TODO: Zoomable map?
-            // TODO: hoverin, hoverout, paint in base class? Layer definition nur für bg image?
-            */
+        }
+        ]
+        // TODO: Then already paint in picture, partial paint?
+        // TODO: Different abstraction levels of classes? (=> rather not)
+        // TODO: One base class with just a paint() method? Which generates boilerplate canvas stuffe t
+        // TODO: Zoomable map?
+        // TODO: hoverin, hoverout, paint in base class? Layer definition nur für bg image?
+        */
 
-            // TODO queue.js
-            // TODO lookup mit rtree
-            d3.json("municipios.json", function(error, d) {
-                d3.json("roads.json", function(error, roads) {
-                    var start = performance.now()
-                    topojson.presimplify(d)
-                    topojson.presimplify(roads)
-                    var end = performance.now()
-                    console.log("Presimplify takes " + (end - start))
+        // TODO queue.js
+        // TODO lookup mit rtree
+        d3.json("municipios.json", function (error, d) {
+            d3.json("roads.json", function (error, roads) {
+                var start = performance.now()
+                topojson.presimplify(d)
+                topojson.presimplify(roads)
+                var end = performance.now()
+                console.log("Presimplify takes " + (end - start))
 
-                    var creatingStart = performance.now()
-                    var selected = null,
-                        hover = null
-                    var map = new ZoomableCanvasMap({
-                        element: ".js-map",
-                        zoomScaleFactor: 0.1,
-                        data: [{
-                            features: topojson.feature(d, d.objects["municipios"]),
-                            static: {
-                                paintfeature: function(parameters, d) {
-                                    if (d.properties.name[0] < "H")
-                                        parameters.context.fillStyle = "blue"
-                                    else
-                                        parameters.context.fillStyle = "red"
-                                    parameters.context.fill()
-                                }
-                            },
-                            // TODO replace path with map?
-                            dynamic: {
-                                postpaint: function(parameters) {
-                                    if (hover) {
-                                        parameters.context.beginPath()
-                                        parameters.context.lineWidth = 1 / parameters.scale
-                                        parameters.path(hover)
-                                        parameters.context.stroke()
-                                    }
-                                    /*if (selected) {
-                                        parameters.context.beginPath()
-                                        parameters.context.lineWidth = 1 / parameters.scale
-                                        parameters.path(selected)
-                                        parameters.context.stroke()
-                                    }*/
-                                }
-                            },
-                            events: {
-                                click: function(parameters, d) { // TODO
-                                    parameters.map.zoom(d)
-                                    selected = d
-                                },
-                                hover: function(parameters, d) {
-                                    hover = d
-                                    parameters.map.paint()
-                                }
+                var creatingStart = performance.now()
+                var selected = null,
+                    hover = null
+                var map = spam.ZoomableCanvasMap({
+                    element: ".js-map",
+                    zoomScaleFactor: 0.1,
+                    data: [{
+                        features: topojson.feature(d, d.objects["municipios"]),
+                        static: {
+                            paintfeature: function (parameters, d) {
+                                if (d.properties.name[0] < "H")
+                                    parameters.context.fillStyle = "blue"
+                                else
+                                    parameters.context.fillStyle = "red"
+                                parameters.context.fill()
                             }
                         },
-                        {
-                            features: topojson.feature(roads, roads.objects["roads"]),
-                            paintfeature: function(parameters, d) {
-                                parameters.context.lineWidth = 1 / parameters.scale
-                                parameters.context.strokeStyle = "black"
-                                parameters.context.stroke()
+                        // TODO replace path with map?
+                        dynamic: {
+                            postpaint: function (parameters) {
+                                if (hover) {
+                                    parameters.context.beginPath()
+                                    parameters.context.lineWidth = 1 / parameters.scale
+                                    parameters.path(hover)
+                                    parameters.context.stroke()
+                                }
+                                /*if (selected) {
+                                    parameters.context.beginPath()
+                                    parameters.context.lineWidth = 1 / parameters.scale
+                                    parameters.path(selected)
+                                    parameters.context.stroke()
+                                }*/
                             }
-                        }]
-                    })
-                    var initStart = performance.now()
-                    map.init()
-                    var initEnd = performance.now()
-                    console.log("Creating takes " + (initStart - creatingStart))
-                    console.log("Init takes " + (initEnd - initStart))
+                        },
+                        events: {
+                            click: function (parameters, d) { // TODO
+                                parameters.map.zoom(d)
+                                selected = d
+                            },
+                            hover: function (parameters, d) {
+                                hover = d
+                                parameters.map.paint()
+                            }
+                        }
+                    },
+                    {
+                        features: topojson.feature(roads, roads.objects["roads"]),
+                        paintfeature: function (parameters, d) {
+                            parameters.context.lineWidth = 1 / parameters.scale
+                            parameters.context.strokeStyle = "black"
+                            parameters.context.stroke()
+                        }
+                    }]
                 })
+                var initStart = performance.now()
+                map.init()
+                var initEnd = performance.now()
+                console.log("Creating takes " + (initStart - creatingStart))
+                console.log("Init takes " + (initEnd - initStart))
             })
-        </script>
-    </body>
+        })
+    </script>
+</body>
+
 </html>

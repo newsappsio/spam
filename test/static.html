@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="es-ES">
+<style>
+  .js-map {
+    width: 600px;
+  }
+</style>
+
+<body>
+  <div class="js-map"></div>
+  <script src="https://d3js.org/d3.v4.min.js"></script>
+  <script src="https://d3js.org/topojson.v3.min.js"></script>
+  <script src="https://unpkg.com/rbush@3.0.1/rbush.min.js"></script>
+  <script src="../dist/spam.js"></script>
+
+  <script type='text/javascript'>
+    d3.json("municipalities.json", function (error, d) {
+      d3.json("roads.json", function (error, roads) {
+        topojson.presimplify(d)
+        topojson.presimplify(roads)
+        console.log(d)
+        console.log(d3.select(".js-map").node().getBoundingClientRect().width)
+
+
+        var hover = null
+        var map = spam.StaticCanvasMap({
+          element: ".js-map",
+          projection: null, // TODO how to automagically detect this?
+          data: [{
+            features: topojson.feature(d, d.objects["municipalities"]),
+            static: {
+              prepaint: function (parameters) {
+                console.log("PRE")
+              },
+              paintfeature: function (parameters, d) {
+                //console.log(d)
+                /*if (d.properties.name[0] < "H")
+                    parameters.context.fillStyle = "blue"
+                else*/
+                parameters.context.fillStyle = "red"
+                parameters.context.fill()
+              }
+            },
+          }]
+        })
+
+        map.init()
+        console.log(map)
+      })
+    })
+  </script>
+</body>
+
+</html>
