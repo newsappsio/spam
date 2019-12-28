@@ -1,18 +1,9 @@
 import { terser } from "rollup-plugin-terser";
-import commonjs from "@rollup/plugin-commonjs";
-import resolve from "@rollup/plugin-node-resolve";
 import buble from "@rollup/plugin-buble";
 import filesize from "rollup-plugin-filesize";
 import * as meta from "./package.json";
 
-const plugins = [
-  resolve(),
-  commonjs({
-    sourceMap: false
-  }),
-  buble(),
-  filesize()
-];
+const plugins = [buble(), filesize()];
 
 const config = {
   input: "index.js",
