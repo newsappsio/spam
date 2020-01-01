@@ -13,6 +13,7 @@
     "name": "Lukas Appelhans & Martín González"
   },
   "scripts": {
+    "dev": "rollup -cw",
     "build": "rollup -c"
   },
   "main": "dist/spam.js",
@@ -29,6 +30,7 @@
     "d3-interpolate": "1",
     "d3-selection": "1",
     "d3-transition": "1",
+    "flatbush": "^3.1.1",
     "rbush": "3"
   },
   "devDependencies": {
