@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="es-ES">
+<style>
+  .js-map {
+    width: 960px;
+    height: 500px;
+  }
+</style>
+
+<body>
+  <div class="js-map"></div>
+  <script src="d3.v5.min.js"></script>
+  <script src="topojson.v3.min.js"></script>
+  <script src="../dist/spam.js"></script>
+
+  <script type='text/javascript'>
+
+    d3.json('states-10m.json')
+      .catch(err => console.warn(err))
+      .then(us => {
+        const { width, height } = d3.select(".js-map").node().getBoundingClientRect();
+        const states = topojson.feature(us, us.objects["states"]);
+        const border = topojson.feature(us, us.objects["nation"]);
+
+        var map = new Spam.StaticCanvasMap({
+          element: ".js-map",
+          projection: d3.geoAlbersUsa()
+            .fitSize([width, height], states),
+          data: [{
+            features: border,
+            static: {
+              paintfeature: parameters => {
+                parameters.context.shadowBlur = 20;
+                parameters.context.shadowColor = "#aaa";
+                parameters.context.fillStyle = "#fff";
+                parameters.context.fill();
+              }
+            }
+          },
+          {
+            features: states,
+            static: {
+              paintfeature: parameters => {
+                parameters.context.shadowBlur = 0;
+                parameters.context.strokeStyle = "#bbb";
+                parameters.context.stroke();
+              }
+            },
+          }]
+        })
+
+        map.init()
+      })
+  </script>
+</body>
+
+</html>
