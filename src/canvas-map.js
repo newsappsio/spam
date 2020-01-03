@@ -163,6 +163,7 @@ class CanvasMap {
     } else if (!this.settings.height) {
       this.settings.height = Math.ceil(dy / 0.9);
     }
+    console.log(this.settings.height);
     select(this.settings.parameters).attr("height", this.settings.height);
   }
 

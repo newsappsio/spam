@@ -2,7 +2,8 @@
 <html lang="es-ES">
 <style>
   .js-map {
-    width: 600px;
+    width: 960px;
+    height: 500px;
   }
 </style>
 
@@ -13,33 +14,36 @@
   <script src="../dist/spam.js"></script>
 
   <script type='text/javascript'>
-    Promise.all([
-      d3.json('municipalities.json'),
-      d3.json('roads.json'),
-    ])
-      .catch(err => console.warn(err))
-      .then(([d, roads]) => {
-        topojson.presimplify(d)
-        topojson.presimplify(roads)
-        console.log(d3.select(".js-map").node().getBoundingClientRect().width)
 
-        var hover = null
+    d3.json('states-10m.json')
+      .catch(err => console.warn(err))
+      .then(us => {
+        const { width, height } = d3.select(".js-map").node().getBoundingClientRect();
+        const states = topojson.feature(us, us.objects["states"]);
+        const border = topojson.feature(us, us.objects["nation"]);
+
         var map = new Spam.StaticCanvasMap({
           element: ".js-map",
-          projection: null, // TODO how to automagically detect this?
+          projection: d3.geoAlbersUsa()
+            .fitSize([width, height], states),
           data: [{
-            features: topojson.feature(d, d.objects["municipalities"]),
+            features: border,
             static: {
-              prepaint: function (parameters) {
-                console.log("PRE")
-              },
-              paintfeature: function (parameters, d) {
-                //console.log(d)
-                /*if (d.properties.name[0] < "H")
-                    parameters.context.fillStyle = "blue"
-                else*/
-                parameters.context.fillStyle = "red"
-                parameters.context.fill()
+              paintfeature: parameters => {
+                parameters.context.shadowBlur = 20;
+                parameters.context.shadowColor = "#aaa";
+                parameters.context.fillStyle = "#fff";
+                parameters.context.fill();
+              }
+            }
+          },
+          {
+            features: states,
+            static: {
+              paintfeature: parameters => {
+                parameters.context.shadowBlur = 0;
+                parameters.context.strokeStyle = "#bbb";
+                parameters.context.stroke();
               }
             },
           }]

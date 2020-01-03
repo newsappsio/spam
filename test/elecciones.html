@@ -43,7 +43,7 @@
 
     // TODO lookup mit rtree
     Promise.all([
-      d3.json('municipios.json'),
+      d3.json('municipalities-large.json'),
       d3.json('roads.json'),
     ])
       .catch(err => console.warn(err))
