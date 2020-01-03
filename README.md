@@ -7,6 +7,7 @@ Custom projections, click/hover events,`d3.geo` path generators and multiple map
 Check the [API docs](https://github.com/newsappsio/spam/wiki/API) or continue reading for [examples](#examples).
 
 ## Introduction
+
 When using Spam you are still in charge of painting everything. However the library creates the canvas boilerplate and tries to handle as much as possible without putting constraints on the user.
 
 In order to improve performance, Spam uses two painting phases. The 'static' layer is created once (for every zoom level) and should contain the majority of operations. After these operations complete, the canvas is saved into a picture.
@@ -16,43 +17,51 @@ Now every time the canvas needs a repaint (e.g. for hover effects), Spam enters 
 In order to get the most out of Spam, we encourage you to think about which parts of your map are static and dynamic beforehand and then use the appropriate callbacks. The more code runs in the 'static' functions, the faster Spam will become.
 
 ## Getting started
-Spam depends on [D3](https://github.com/mbostock/d3), [TopoJSON](https://github.com/mbostock/topojson) and [rbush](https://github.com/mourner/rbush) and it's available on npm (`npm install spamjs`, [Browserify example](http://bl.ocks.org/martgnz/867c95c3b13ac538ad2a64945bc5cf80)), bower (`bower install spam`) and with a normal script tag.
 
-Clone the repository ([or download the zip](https://github.com/newsappsio/spam/releases/download/v1.1.0/spam.zip)) and include `spam.js` after D3, TopoJSON and rbush in your website.
+Spam depends on [D3](https://github.com/mbostock/d3) and [TopoJSON](https://github.com/mbostock/topojson) and it's available on npm and with a normal script tag.
+
+If you use NPM, you can do `npm install spamjs` and include it in your project:
+
+```js
+import Spam from "spamjs";
+```
+
+Otherwise, [download the latest release](https://github.com/newsappsio/spam/releases/download/v1.1.0/spam.zip) and add a script tag in your site (don't forget to include D3 and TopoJSON).
 
 ```html
-<script src="//d3js.org/d3.v3.min.js"></script>
-<script src="//d3js.org/topojson.v1.min.js"></script>
-<script src="//cdn.rawgit.com/mourner/rbush/master/rbush.js"></script>
-<script src="//cdn.rawgit.com/newsappsio/spam/master/spam.min.js"></script>
+<script src="https://d3js.org/d3.v5.min.js"></script>
+<script src="https://d3js.org/topojson.v3.min.js"></script>
+<script src="spam.js"></script>
 ```
 
 Here's the most basic map you can do:
 
 ```js
-d3.json("map.json", function(error, d) {
-    topojson.presimplify(d)
+d3.json("map.json").then(d => {
+  topojson.presimplify(d);
 
-    var map = new StaticCanvasMap({
-        element: "body",
-        data: [
-            {
-                features: topojson.feature(d, d.objects["map"]),
-                static: {
-                    paintfeature: function(parameters, d) {
-                        parameters.context.stroke()
-                    }
-                }
-            }
-        ]
-    })
-    map.init()
-})
+  const map = new Spam.StaticCanvasMap({
+    element: "body",
+    data: [
+      {
+        features: topojson.feature(d, d.objects["map"]),
+        static: {
+          paintfeature: parameters => {
+            parameters.context.stroke();
+          }
+        }
+      }
+    ]
+  });
+
+  map.init();
+});
 ```
 
 And that's it! A simple, static map in just a few lines of code! It will be automagically projected and centered in your container, nothing else needed.
 
 ## Examples
+
 The best way to start making maps with Spam is reading the examples. You can use the same structure in your maps and fork them with your own TopoJSON.
 
 - [Basic static map](http://bl.ocks.org/martgnz/c48aa019de720fcd86030d3b07990d8d)
@@ -65,7 +74,9 @@ The best way to start making maps with Spam is reading the examples. You can use
 - [Zoomable choropleth](http://bl.ocks.org/martgnz/a61c2da0e45a108c857e)
 
 ## API
+
 Check the [API docs](https://github.com/newsappsio/spam/wiki/API) on the wiki for more information.
 
 ## License
+
 MIT © Lukas Appelhans, Martín González.
