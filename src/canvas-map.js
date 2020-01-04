@@ -7,7 +7,7 @@ import createRTrees from "./util/create-r-trees";
 import isInsidePolygon from "./util/is-inside-polygon"
 import maxBounds from "./util/max-bounds"
 
-function paintBackgroundElement(element, parameters) {
+function paintStaticElement(element, parameters) {
   if (!element.static) return;
   element.static.prepaint && element.static.prepaint(parameters);
   if (element.static.paintfeature) {
@@ -16,6 +16,21 @@ function paintBackgroundElement(element, parameters) {
     }
   }
   element.static.postpaint && element.static.postpaint(parameters);
+}
+
+function paintStaticElements(elements, parameters) {
+  for (const i in elements) {
+    let element = elements[i];
+    paintStaticElement(element, parameters);
+  }
+}
+
+function saveCanvasToImage(canvas, callback) {
+  let image = new Image();
+
+  image.onload = callback;
+  image.src = canvas.node().toDataURL();
+  return image;
 }
 
 function extend(extension, obj) {
@@ -174,7 +189,6 @@ class CanvasMap {
       createRTrees(this.settings.data, this.dataPath);
     }
 
-    this.settings.background = new Image();
     this.settings.backgroundScale = this.settings.scale;
     this.settings.backgroundTranslate = this.settings.translate;
 
@@ -190,6 +204,8 @@ class CanvasMap {
       projectedScale: this.settings.projectedScale
     };
 
+    paintStaticElements(this.settings.data, parameters)
+
     const callback = () => {
       this.context.restore();
 
@@ -202,12 +218,7 @@ class CanvasMap {
       this.paint(); // For dynamic paints
     };
 
-    for (const i in this.settings.data) {
-      let element = this.settings.data[i];
-      paintBackgroundElement(element, parameters);
-    }
-    this.settings.background.onload = callback;
-    this.settings.background.src = this.canvas.node().toDataURL();
+    this.settings.background = saveCanvasToImage(this.canvas, callback);
 
     //Prevent another call to the init method
     this.init = function() {};
