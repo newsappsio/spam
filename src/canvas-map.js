@@ -1,11 +1,12 @@
 import { select, mouse } from "d3-selection";
 import { geoTransform, geoPath, geoBounds, geoMercator } from "d3-geo";
 
-import translatePoint from "./util/translate-point";
-import paintFeature from "./util/paint-feature";
 import createRTrees from "./util/create-r-trees";
 import isInsidePolygon from "./util/is-inside-polygon"
 import maxBounds from "./util/max-bounds"
+import paintFeature from "./util/paint-feature";
+import saveCanvasToImage from "./util/save-canvas-to-image"
+import translatePoint from "./util/translate-point";
 
 function paintStaticElement(element, parameters) {
   if (!element.static) return;
@@ -23,14 +24,6 @@ function paintStaticElements(elements, parameters) {
     let element = elements[i];
     paintStaticElement(element, parameters);
   }
-}
-
-function saveCanvasToImage(canvas, callback) {
-  let image = new Image();
-
-  image.onload = callback;
-  image.src = canvas.node().toDataURL();
-  return image;
 }
 
 function extend(extension, obj) {
