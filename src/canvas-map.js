@@ -1,64 +1,14 @@
 import { select, mouse } from "d3-selection";
 import { geoTransform, geoPath, geoBounds, geoMercator } from "d3-geo";
 
-import translatePoint from "./util/translate-point";
-import paintFeature from "./util/paint-feature";
 import createRTrees from "./util/create-r-trees";
+import isInsidePolygon from "./util/is-inside-polygon"
+import maxBounds from "./util/max-bounds"
+import paintFeature from "./util/paint-feature";
+import saveCanvasToImage from "./util/save-canvas-to-image"
+import translatePoint from "./util/translate-point";
 
-// TODO use turf inside as a dependency?
-// Copied from turf.inside
-function inside(pt, polygon) {
-  let polys = polygon.geometry.coordinates;
-  // normalize to multipolygon
-  if (polygon.geometry.type === "Polygon") polys = [polys];
-
-  let insidePoly = false;
-  let i = 0;
-  while (i < polys.length && !insidePoly) {
-    // check if it is in the outer ring first
-    if (inRing(pt, polys[i][0])) {
-      let inHole = false;
-      let k = 1;
-      // check for the point in any of the holes
-      while (k < polys[i].length && !inHole) {
-        if (inRing(pt, polys[i][k])) {
-          inHole = true;
-        }
-        k++;
-      }
-      if (!inHole) insidePoly = true;
-    }
-    i++;
-  }
-  return insidePoly;
-}
-
-// pt is [x,y] and ring is [[x,y], [x,y],..]
-function inRing(pt, ring) {
-  let isInside = false;
-  for (let i = 0, j = ring.length - 1; i < ring.length; j = i++) {
-    const xi = ring[i][0],
-      yi = ring[i][1];
-    const xj = ring[j][0],
-      yj = ring[j][1];
-    const intersect =
-      yi > pt[1] !== yj > pt[1] &&
-      pt[0] < ((xj - xi) * (pt[1] - yi)) / (yj - yi) + xi;
-    if (intersect) isInside = !isInside;
-  }
-  return isInside;
-}
-
-function maxBounds(one, two) {
-  const bounds = two;
-  bounds[0][0] = Math.min(one[0][0], two[0][0]);
-  bounds[0][1] = Math.min(one[0][1], two[0][1]);
-  bounds[1][0] = Math.max(one[1][0], two[1][0]);
-  bounds[1][1] = Math.max(one[1][1], two[1][1]);
-  return bounds;
-}
-
-function paintBackgroundElement(element, parameters) {
+function paintStaticElement(element, parameters) {
   if (!element.static) return;
   element.static.prepaint && element.static.prepaint(parameters);
   if (element.static.paintfeature) {
@@ -67,6 +17,13 @@ function paintBackgroundElement(element, parameters) {
     }
   }
   element.static.postpaint && element.static.postpaint(parameters);
+}
+
+function paintStaticElements(elements, parameters) {
+  for (const i in elements) {
+    let element = elements[i];
+    paintStaticElement(element, parameters);
+  }
 }
 
 function extend(extension, obj) {
@@ -225,7 +182,6 @@ class CanvasMap {
       createRTrees(this.settings.data, this.dataPath);
     }
 
-    this.settings.background = new Image();
     this.settings.backgroundScale = this.settings.scale;
     this.settings.backgroundTranslate = this.settings.translate;
 
@@ -241,6 +197,8 @@ class CanvasMap {
       projectedScale: this.settings.projectedScale
     };
 
+    paintStaticElements(this.settings.data, parameters)
+
     const callback = () => {
       this.context.restore();
 
@@ -253,12 +211,7 @@ class CanvasMap {
       this.paint(); // For dynamic paints
     };
 
-    for (const i in this.settings.data) {
-      let element = this.settings.data[i];
-      paintBackgroundElement(element, parameters);
-    }
-    this.settings.background.onload = callback;
-    this.settings.background.src = this.canvas.node().toDataURL();
+    this.settings.background = saveCanvasToImage(this.canvas, callback);
 
     //Prevent another call to the init method
     this.init = function() {};
@@ -380,7 +333,7 @@ class CanvasMap {
       let isInside = false;
       for (const j in lookup) {
         const feature = lookup[j].polygon;
-        if (inside(topojsonPoint, feature)) {
+        if (isInsidePolygon(topojsonPoint, feature)) {
           element.events.click(parameters, feature);
           isInside = true;
         }
@@ -435,7 +388,7 @@ class CanvasMap {
       if (
         !element.events ||
         !element.events.hover ||
-        (element.hoverElement && inside(topojsonPoint, element.hoverElement))
+        (element.hoverElement && isInsidePolygon(topojsonPoint, element.hoverElement))
       ) {
         continue;
       }
@@ -451,7 +404,7 @@ class CanvasMap {
 
       for (const j in lookup) {
         const feature = lookup[j].polygon;
-        if (inside(topojsonPoint, feature)) {
+        if (isInsidePolygon(topojsonPoint, feature)) {
           element.hoverElement = feature;
           break;
         }
