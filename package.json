@@ -27,9 +27,9 @@
   "dependencies": {
     "d3-ease": "1",
     "d3-geo": "1",
-    "d3-interpolate": "1",
+    "d3-interpolate": "3",
     "d3-selection": "1",
-    "d3-transition": "1",
+    "d3-transition": "3",
     "rbush": "3"
   },
   "devDependencies": {
